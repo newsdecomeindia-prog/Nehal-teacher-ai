@@ -1,2 +1,20 @@
-# Nehal-teacher-ai
-AI-powered learning platform for primary students featuring Suman AI Teacher.
+# Nehal Ki Teacher AI
+
+An AI-powered primary education platform tailored for foundational learning in India (KG to Class 5, with Class 1 as priority). Features Suman AI Teacher and Suresh AI Teacher delivering multi-lingual interactive lessons grounded in standard NCERT / State Board curriculum frameworks.
+
+## Project Structure
+- `backend/`: FastAPI backend service powering curriculum APIs, Suman AI teacher interaction, multi-modal voice/image services, English speaking engine, Knowledge World story engine, Diagnostic Exams & Parent Analytics, and production security hardening middleware.
+- `mobile/`: Flutter client application data models, service abstractions, secure storage, offline state handling, and error boundaries.
+- `docs/`: Technical specification documents, architecture guides, and production release documentation.
+- `scripts/`: Verification scripts for Phase 0 through Phase 8, including the master verification script `scripts/verify_all_phases.py`.
+
+## Completed Phases
+- **Phase 0**: Architecture & Technical Requirements Blueprint
+- **Phase 1**: Technical Foundation Setup & Core Repository Structure
+- **Phase 2**: Class 1 Core Learning Architecture & Curriculum API
+- **Phase 3**: Suman AI Teacher Integration
+- **Phase 4**: Multi-Modal Engine Architecture Setup (Voice STT/TTS & Homework Photo Scan abstractions with child safety & privacy controls)
+- **Phase 5**: English Small-Sentence Speaking Engine Architecture (3 difficulty tiers, gentle child-friendly soft scoring, phonetic guides, and offline fallback)
+- **Phase 6**: Knowledge World / Gamified Learning & Story Engine Architecture (Interactive story quests, non-monetary gamification XP/badge rewards, Math Jungle / Word World / Science Safari themes, and offline continuity)
+- **Phase 7**: Diagnostic Exams / Analytics Engine / Parent Portal Architecture (Classes 1-5 quiz paper generation, learning gap detection, parent portal summary dashboard, and DPDP/COPPA consent privacy controls)
+- **Phase 8**: Production Readiness, Security Hardening & Pre-Release Audit (Security response headers, CORS constraints, rate limiting, startup environment variable validation, PII sanitization, Docker multi-stage build, Flutter error boundaries, and end-to-end verification suite)
