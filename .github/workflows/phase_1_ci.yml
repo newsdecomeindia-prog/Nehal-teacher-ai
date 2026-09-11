@@ -1,0 +1,41 @@
+name: Phase 1 CI Workflow
+
+on:
+  push:
+    branches: [ main, master, "jules-*" ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run Ruff Linter
+        run: |
+          ruff check .
+
+      - name: Run Phase 0 Verification
+        run: |
+          python scripts/verify_phase_0.py
+
+      - name: Run Phase 1 Verification
+        run: |
+          python scripts/verify_phase_1.py
+
+      - name: Run Unit Tests
+        run: |
+          pytest
