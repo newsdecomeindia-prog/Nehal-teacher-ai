@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: nehal_teacher_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=prod_super_secret_key_nehal_ai_teacher_2026_secured
+      - CORS_ORIGINS=http://localhost,http://localhost:3000
+      - RATE_LIMIT_PER_MINUTE=60
+      - DPDP_COPPA_STRICT_MODE=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
