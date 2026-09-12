@@ -1,4 +1,5 @@
 import '../models/teacher.dart';
+import '../widgets/rich_visual_card.dart';
 
 class TeacherService {
   final String baseUrl;
@@ -6,7 +7,6 @@ class TeacherService {
   TeacherService({this.baseUrl = 'http://localhost:8000/api/v1'});
 
   Future<TeacherPersonaConfig> getTeacherPersona({String language = 'en'}) async {
-    // Client-side service layer wrapper for fetching Suman AI Teacher persona
     return TeacherPersonaConfig(
       name: 'Suman AI',
       language: language,
@@ -16,10 +16,7 @@ class TeacherService {
   }
 
   Future<TeacherChatResponse> sendChatMessage(TeacherChatRequest request) async {
-    // Mobile client service method for sending query to /api/v1/teacher/chat
-    // Falls back to structured offline response when backend is unreachable
     try {
-      // HTTP call placeholder
       return _generateOfflineFallbackResponse(request);
     } catch (e) {
       return _generateOfflineFallbackResponse(request);
@@ -27,7 +24,42 @@ class TeacherService {
   }
 
   TeacherChatResponse _generateOfflineFallbackResponse(TeacherChatRequest request) {
-    if (request.isConfused || request.message.toLowerCase().contains('understand')) {
+    final msgLower = request.message.toLowerCase();
+
+    // PM Modi entity match query
+    if (msgLower.contains('modi') || msgLower.contains('प्रधानमंत्री') || msgLower.contains('prime minister')) {
+      final richCard = RichVisualCardData(
+        entityName: 'Narendra Modi',
+        imageUrl: 'https://assets.nehalai.com/images/pm_modi.jpg',
+        titles: {
+          'english': 'Narendra Modi',
+          'hindi': 'नरेंद्र मोदी',
+          'marathi': 'नरेंद्र मोदी',
+        },
+        pronunciationAudio: 'https://assets.nehalai.com/audio/pm_modi_pron.mp3',
+        simpleExplanation: 'नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।',
+        checkingQuestion: 'क्या आप जानते हैं कि भारत की राजधानी (Capital) कौन सी है?',
+        classLevel: 1,
+      );
+
+      return TeacherChatResponse(
+        responseText: request.language == 'hi'
+            ? 'नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। यहाँ उनके बारे में कार्ड देखें:'
+            : request.language == 'mr'
+                ? 'नरेंद्र मोदी हे भारताचे सध्याचे पंतप्रधान आहेत. खालील कार्ड पहा:'
+                : 'Narendra Modi is the current Prime Minister of India. Here is a rich visual card for you:',
+        language: request.language,
+        interactionMode: 'standard',
+        isFallbackExplanation: false,
+        richCard: richCard,
+        visualCueTrigger: 'Narendra Modi',
+        groundedConceptId: request.conceptId,
+        safetyFiltered: false,
+        encouragementPhrase: 'Shabash!',
+      );
+    }
+
+    if (request.isConfused || msgLower.contains('understand')) {
       return TeacherChatResponse(
         responseText: request.language == 'hi'
             ? 'चलो इसे एक आसान उदाहरण के साथ समझते हैं! [Visual Cue: सेब का चित्र]'

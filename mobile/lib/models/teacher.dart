@@ -1,3 +1,5 @@
+import 'package:nehal_teacher_ai_mobile/widgets/rich_visual_card.dart';
+
 enum InteractionMode {
   standard,
   fallbackExplanation,
@@ -11,6 +13,7 @@ class TeacherChatMessage {
   final DateTime timestamp;
   final bool isFallbackExplanation;
   final String? visualCueTrigger;
+  final RichVisualCardData? richCard;
 
   TeacherChatMessage({
     required this.id,
@@ -19,6 +22,7 @@ class TeacherChatMessage {
     required this.timestamp,
     this.isFallbackExplanation = false,
     this.visualCueTrigger,
+    this.richCard,
   });
 
   factory TeacherChatMessage.fromJson(Map<String, dynamic> json) {
@@ -31,6 +35,9 @@ class TeacherChatMessage {
           : DateTime.now(),
       isFallbackExplanation: json['is_fallback_explanation'] as bool? ?? false,
       visualCueTrigger: json['visual_cue_trigger'] as String?,
+      richCard: json['rich_card'] != null
+          ? RichVisualCardData.fromJson(json['rich_card'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -83,6 +90,7 @@ class TeacherChatResponse {
   final String interactionMode;
   final bool isFallbackExplanation;
   final String? visualCueTrigger;
+  final RichVisualCardData? richCard;
   final String? groundedConceptId;
   final bool safetyFiltered;
   final String? encouragementPhrase;
@@ -93,6 +101,7 @@ class TeacherChatResponse {
     required this.interactionMode,
     this.isFallbackExplanation = false,
     this.visualCueTrigger,
+    this.richCard,
     this.groundedConceptId,
     this.safetyFiltered = false,
     this.encouragementPhrase,
@@ -105,6 +114,9 @@ class TeacherChatResponse {
       interactionMode: json['interaction_mode'] as String? ?? 'standard',
       isFallbackExplanation: json['is_fallback_explanation'] as bool? ?? false,
       visualCueTrigger: json['visual_cue_trigger'] as String?,
+      richCard: json['rich_card'] != null
+          ? RichVisualCardData.fromJson(json['rich_card'] as Map<String, dynamic>)
+          : null,
       groundedConceptId: json['grounded_concept_id'] as String?,
       safetyFiltered: json['safety_filtered'] as bool? ?? false,
       encouragementPhrase: json['encouragement_phrase'] as String?,

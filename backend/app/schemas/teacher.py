@@ -19,6 +19,24 @@ class TeacherPersonaConfig(BaseModel):
     grade_level: int = Field(default=1)
 
 
+class RichVisualCardTitles(BaseModel):
+    english: str = Field(..., description="Entity name in English")
+    hindi: str = Field(..., description="Entity name in Hindi")
+    marathi: str = Field(..., description="Entity name in Marathi")
+
+
+class RichVisualCardPayload(BaseModel):
+    entity_name: str = Field(..., description="Primary entity name")
+    image_url: str = Field(..., description="URL to high quality image/illustration")
+    titles: RichVisualCardTitles = Field(..., description="3-language name mappings")
+    pronunciation_audio: Optional[str] = Field(
+        None, description="URL or key for pronunciation audio"
+    )
+    simple_explanation: str = Field(..., description="Age-appropriate Class 1 explanation")
+    checking_question: str = Field(..., description="Suman AI interactive checking question")
+    class_level: int = Field(default=1, description="Target Class level")
+
+
 class TeacherChatRequest(BaseModel):
     student_id: str = Field(..., description="Unique student/user identifier")
     message: str = Field(..., description="Student query or response")
@@ -44,6 +62,9 @@ class TeacherChatResponse(BaseModel):
     )
     visual_cue_trigger: Optional[str] = Field(
         None, description="Extracted visual cue graphic hint if present"
+    )
+    rich_card: Optional[RichVisualCardPayload] = Field(
+        None, description="Multi-Modal Rich Visual Card payload if entity match exists"
     )
     grounded_concept_id: Optional[str] = Field(
         None, description="Concept ID response was grounded on"
