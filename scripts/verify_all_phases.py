@@ -34,6 +34,8 @@ def main():
         "scripts/verify_phase_5.py",
         "scripts/verify_phase_6.py",
         "scripts/verify_phase_7.py",
+        "scripts/verify_phase_8.py",
+        "scripts/verify_phase_9.py",
     ]
 
     for script in phase_scripts:

@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'analytics.dart';
+import '../models/analytics.dart';
 
 class AnalyticsService {
   final String baseUrl;
