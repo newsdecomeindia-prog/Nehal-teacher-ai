@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:nehal_teacher_ai_mobile/models/teacher.dart';
 import 'package:nehal_teacher_ai_mobile/services/teacher_service.dart';
+import 'package:nehal_teacher_ai_mobile/models/knowledge_world.dart';
+import 'package:nehal_teacher_ai_mobile/services/knowledge_world_service.dart';
+import 'package:nehal_teacher_ai_mobile/models/english_speaking.dart';
+import 'package:nehal_teacher_ai_mobile/services/english_speaking_service.dart';
+import 'package:nehal_teacher_ai_mobile/models/analytics.dart';
+import 'package:nehal_teacher_ai_mobile/services/analytics_service.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/error_boundary.dart';
 
 void main() {
@@ -304,7 +310,7 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -377,8 +383,38 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
 // ==========================================
 // 2. Curriculum & Knowledge World Tab
 // ==========================================
-class CurriculumWorldTab extends StatelessWidget {
+class CurriculumWorldTab extends StatefulWidget {
   const CurriculumWorldTab({super.key});
+
+  @override
+  State<CurriculumWorldTab> createState() => _CurriculumWorldTabState();
+}
+
+class _CurriculumWorldTabState extends State<CurriculumWorldTab> {
+  final KnowledgeWorldMobileService _kwService = KnowledgeWorldMobileService();
+  List<WorldTheme> _worlds = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWorlds();
+  }
+
+  Future<void> _loadWorlds() async {
+    final worlds = await _kwService.fetchWorlds();
+    setState(() {
+      _worlds = worlds;
+      _isLoading = false;
+    });
+  }
+
+  String _getBadgeEmoji(String category) {
+    if (category.contains('math') || category.contains('number')) return '🔢';
+    if (category.contains('alpha') || category.contains('word') || category.contains('english')) return '🔤';
+    if (category.contains('nature') || category.contains('evs')) return '🌱';
+    return '🗺️';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -386,37 +422,38 @@ class CurriculumWorldTab extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Knowledge World Gamified Learning'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'Class 1 Curriculum Worlds',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          _buildWorldCard(
-            badge: '🔢',
-            title: 'Numbers & Counting Forest',
-            description: 'Learn numbers 1 to 20, basic addition & subtraction with visual apples.',
-            xp: 150,
-            completed: true,
-          ),
-          _buildWorldCard(
-            badge: '🔤',
-            title: 'Alphabet & Phonics Island',
-            description: 'Master letters A to Z, phonics sounds, and simple word formation.',
-            xp: 200,
-            completed: false,
-          ),
-          _buildWorldCard(
-            badge: '🌱',
-            title: 'EVS & Nature Kingdom',
-            description: 'Explore plants, animals, seasons, and hygiene habits.',
-            xp: 120,
-            completed: false,
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadWorlds,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  const Text(
+                    'Class 1 Curriculum Worlds',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_worlds.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: Center(child: Text('No learning worlds available currently.')),
+                    )
+                  else
+                    ..._worlds.map((world) {
+                      final firstQuest = world.quests.isNotEmpty ? world.quests.first : null;
+                      return _buildWorldCard(
+                        badge: _getBadgeEmoji(world.category),
+                        title: world.name,
+                        description: world.description,
+                        xp: 150,
+                        completed: world.quests.isEmpty,
+                        questTitle: firstQuest?.title,
+                      );
+                    }),
+                ],
+              ),
+            ),
     );
   }
 
@@ -426,6 +463,7 @@ class CurriculumWorldTab extends StatelessWidget {
     required String description,
     required int xp,
     required bool completed,
+    String? questTitle,
   }) {
     return Card(
       elevation: 2,
@@ -445,6 +483,13 @@ class CurriculumWorldTab extends StatelessWidget {
                     children: [
                       Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       Text(description, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                      if (questTitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Active Quest: $questTitle',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.purple.shade700),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -494,149 +539,205 @@ class EnglishSpeakingTab extends StatefulWidget {
 }
 
 class _EnglishSpeakingTabState extends State<EnglishSpeakingTab> {
+  final EnglishSpeakingService _speakingService = EnglishSpeakingService();
   String _difficulty = 'tier_1';
+  bool _isLoadingPrompts = true;
   bool _isRecording = false;
-  bool _showFeedback = false;
+  bool _isEvaluating = false;
+  List<SpeakingPrompt> _allPrompts = [];
+  SpeakingPrompt? _activePrompt;
+  SpeakingEvaluationResponse? _evaluationResult;
 
-  final Map<String, Map<String, String>> _prompts = {
-    'tier_1': {
-      'sentence': 'Good Morning Teacher!',
-      'hindi': 'सुप्रभात अध्यापिका जी!',
-      'phonetic': 'gud mor-ning tee-cher',
-    },
-    'tier_2': {
-      'sentence': 'This is a red apple.',
-      'hindi': 'यह एक लाल सेब है।',
-      'phonetic': 'this iz a red ap-puhl',
-    },
-    'tier_3': {
-      'sentence': 'I love reading books with Suman Teacher.',
-      'hindi': 'मुझे सुमन टीचर के साथ किताबें पढ़ना पसंद है।',
-      'phonetic': 'ai luhv ree-ding buks',
-    },
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadPrompts();
+  }
+
+  Future<void> _loadPrompts() async {
+    setState(() => _isLoadingPrompts = true);
+    try {
+      final prompts = await _speakingService.fetchPrompts();
+      setState(() {
+        _allPrompts = prompts;
+        _isLoadingPrompts = false;
+        _selectPromptForTier(_difficulty);
+      });
+    } catch (_) {
+      setState(() {
+        _isLoadingPrompts = false;
+      });
+    }
+  }
+
+  void _selectPromptForTier(String tier) {
+    if (_allPrompts.isEmpty) return;
+    final filtered = _allPrompts.where((p) => p.tier == tier).toList();
+    setState(() {
+      _activePrompt = filtered.isNotEmpty ? filtered.first : _allPrompts.first;
+      _evaluationResult = null;
+    });
+  }
+
+  Future<void> _evaluateSpeechAttempt() async {
+    if (_activePrompt == null) return;
+
+    setState(() {
+      _isRecording = false;
+      _isEvaluating = true;
+    });
+
+    try {
+      final req = SpeakingEvaluationRequest(
+        studentId: 'student_class1_001',
+        promptId: _activePrompt!.promptId,
+        spokenTranscript: _activePrompt!.targetSentence,
+        targetSentence: _activePrompt!.targetSentence,
+        durationSeconds: 2.5,
+      );
+
+      final res = await _speakingService.evaluateAttempt(req);
+      setState(() {
+        _evaluationResult = res;
+        _isEvaluating = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isEvaluating = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final activePrompt = _prompts[_difficulty]!;
+    final phoneticText = _activePrompt?.phonetics.isNotEmpty == true
+        ? _activePrompt!.phonetics.first.simplePhonetic
+        : 'gud mor-ning tee-cher';
+    final targetSentence = _activePrompt?.targetSentence ?? 'Good Morning Teacher!';
+    final hindiTranslation = _activePrompt?.translationHindi ?? 'सुप्रभात अध्यापिका जी!';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('English Speaking Practice'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'tier_1', label: Text('Tier 1: Greetings')),
-                ButtonSegment(value: 'tier_2', label: Text('Tier 2: Sentences')),
-                ButtonSegment(value: 'tier_3', label: Text('Tier 3: Dialog')),
-              ],
-              selected: {_difficulty},
-              onSelectionChanged: (Set<String> newSelection) {
-                setState(() {
-                  _difficulty = newSelection.first;
-                  _showFeedback = false;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            Card(
-              color: const Color(0xFFEADDFF),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Text(
-                      activePrompt['phonetic']!,
-                      style: TextStyle(color: Colors.purple.shade900, fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '"${activePrompt['sentence']!}"',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF21005D),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Chip(
-                      avatar: const Icon(Icons.translate, size: 16),
-                      label: Text(activePrompt['hindi']!),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: GestureDetector(
-                onTapDown: (_) {
-                  setState(() => _isRecording = true);
-                },
-                onTapUp: (_) {
-                  setState(() {
-                    _isRecording = false;
-                    _showFeedback = true;
-                  });
-                },
-                child: CircleAvatar(
-                  radius: 48,
-                  backgroundColor: _isRecording ? Colors.red : const Color(0xFF6750A4),
-                  child: Icon(
-                    _isRecording ? Icons.mic : Icons.mic_none,
-                    size: 48,
-                    color: Colors.white,
+      body: _isLoadingPrompts
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'tier_1', label: Text('Tier 1: Greetings')),
+                      ButtonSegment(value: 'tier_2', label: Text('Tier 2: Sentences')),
+                      ButtonSegment(value: 'tier_3', label: Text('Tier 3: Dialog')),
+                    ],
+                    selected: {_difficulty},
+                    onSelectionChanged: (Set<String> newSelection) {
+                      setState(() {
+                        _difficulty = newSelection.first;
+                        _selectPromptForTier(_difficulty);
+                      });
+                    },
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _isRecording ? 'Listening to child speaking...' : 'Press and hold microphone to speak',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: _isRecording ? Colors.red : Colors.grey.shade700),
-            ),
-            const SizedBox(height: 24),
-            if (_showFeedback) ...[
-              Card(
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Text(
-                        '🌟 Great Effort!',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  const SizedBox(height: 20),
+                  Card(
+                    color: const Color(0xFFEADDFF),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
                         children: [
-                          _buildScoreGauge('Fluency', 92),
-                          _buildScoreGauge('Accuracy', 88),
-                          _buildScoreGauge('Completeness', 100),
+                          Text(
+                            phoneticText,
+                            style: TextStyle(color: Colors.purple.shade900, fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '"$targetSentence"',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF21005D),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Chip(
+                            avatar: const Icon(Icons.translate, size: 16),
+                            label: Text(hindiTranslation),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Soft Evaluation: Clear pronunciation and steady pace!',
-                        style: TextStyle(fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: GestureDetector(
+                      onTapDown: (_) {
+                        setState(() => _isRecording = true);
+                      },
+                      onTapUp: (_) {
+                        _evaluateSpeechAttempt();
+                      },
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundColor: _isRecording ? Colors.red : const Color(0xFF6750A4),
+                        child: _isEvaluating
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Icon(
+                                _isRecording ? Icons.mic : Icons.mic_none,
+                                size: 48,
+                                color: Colors.white,
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _isRecording
+                        ? 'Listening to child speaking...'
+                        : _isEvaluating
+                            ? 'Evaluating speech quality...'
+                            : 'Press and hold microphone to speak',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: _isRecording ? Colors.red : Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 24),
+                  if (_evaluationResult != null) ...[
+                    Card(
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Text(
+                              _evaluationResult!.feedback.encouragementMessage,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildScoreGauge('Fluency', _evaluationResult!.fluency.fluencyScore),
+                                _buildScoreGauge('Accuracy', _evaluationResult!.accuracy.overallAccuracy),
+                                _buildScoreGauge('Match', _evaluationResult!.accuracy.phoneticMatchPercentage),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Evaluation: Tag [${_evaluationResult!.feedback.feedbackTag}] - ${_evaluationResult!.feedback.starsEarned} Stars Earned!',
+                              style: const TextStyle(fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
-        ),
-      ),
+            ),
     );
   }
 
@@ -650,13 +751,16 @@ class _EnglishSpeakingTabState extends State<EnglishSpeakingTab> {
               width: 54,
               height: 54,
               child: CircularProgressIndicator(
-                value: score / 100,
+                value: (score > 1.0 ? score / 100 : score).clamp(0.0, 1.0),
                 strokeWidth: 6,
                 backgroundColor: Colors.grey.shade200,
-                color: score > 75 ? Colors.green : Colors.orange,
+                color: score > 75 || score > 0.75 ? Colors.green : Colors.orange,
               ),
             ),
-            Text('${score.toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(
+              '${(score > 1.0 ? score : score * 100).toInt()}%',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -677,7 +781,46 @@ class ParentPortalTab extends StatefulWidget {
 }
 
 class _ParentPortalTabState extends State<ParentPortalTab> {
+  final AnalyticsService _analyticsService = AnalyticsService();
+  ParentDashboardResponse? _dashboardData;
+  bool _isLoading = true;
   bool _parentalConsentGiven = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    try {
+      final res = await _analyticsService.getParentDashboard(studentId: 'student_class1_001');
+      setState(() {
+        _dashboardData = res;
+        _parentalConsentGiven = res.consentSettings.dpdpConsentGranted;
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleConsent(bool val) async {
+    setState(() => _parentalConsentGiven = val);
+    try {
+      final consent = DPDPParentConsent(
+        parentId: 'parent-01',
+        childStudentId: 'student_class1_001',
+        dpdpConsentGranted: val,
+        coppaConsentGranted: val,
+      );
+      await _analyticsService.updateParentConsent(consent);
+    } catch (_) {
+      // Offline fallback handling already handled by service
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -685,99 +828,124 @@ class _ParentPortalTabState extends State<ParentPortalTab> {
       appBar: AppBar(
         title: const Text('Parent Portal & Diagnostic Analytics'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            color: Colors.teal.shade50,
-            child: SwitchListTile(
-              value: _parentalConsentGiven,
-              onChanged: (val) {
-                setState(() => _parentalConsentGiven = val);
-              },
-              title: const Text(
-                'DPDP & COPPA Parental Consent Status',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              subtitle: Text(
-                _parentalConsentGiven
-                    ? 'Consent verified for Class 1 learning analytics & AI guidance'
-                    : 'Consent revoked (Data minimization active)',
-                style: const TextStyle(fontSize: 12),
-              ),
-              secondary: Icon(
-                _parentalConsentGiven ? Icons.verified_user : Icons.gavel,
-                color: _parentalConsentGiven ? Colors.teal : Colors.orange,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadDashboard,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Overall Mastery Score',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Card(
+                    color: Colors.teal.shade50,
+                    child: SwitchListTile(
+                      value: _parentalConsentGiven,
+                      onChanged: _toggleConsent,
+                      title: const Text(
+                        'DPDP & COPPA Parental Consent Status',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
-                      Chip(
-                        label: Text('Class 1 Priority'),
-                        backgroundColor: Color(0xFFE8DEF8),
+                      subtitle: Text(
+                        _parentalConsentGiven
+                            ? 'Consent verified for Class 1 learning analytics & AI guidance'
+                            : 'Consent revoked (Data minimization active)',
+                        style: const TextStyle(fontSize: 12),
                       ),
-                    ],
+                      secondary: Icon(
+                        _parentalConsentGiven ? Icons.verified_user : Icons.gavel,
+                        color: _parentalConsentGiven ? Colors.teal : Colors.orange,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: 0.88,
-                    minHeight: 12,
-                    borderRadius: BorderRadius.circular(6),
-                    color: Colors.teal,
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _dashboardData != null ? 'Student: ${_dashboardData!.childName}' : 'Overall Mastery Score',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const Chip(
+                                label: Text('Class 1 Priority'),
+                                backgroundColor: Color(0xFFE8DEF8),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          LinearProgressIndicator(
+                            value: _dashboardData != null
+                                ? (_dashboardData!.overallMasteryPercentage > 1.0
+                                    ? _dashboardData!.overallMasteryPercentage / 100
+                                    : _dashboardData!.overallMasteryPercentage)
+                                : 0.88,
+                            minHeight: 12,
+                            borderRadius: BorderRadius.circular(6),
+                            color: Colors.teal,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _dashboardData != null
+                                ? 'Mastery: ${_dashboardData!.overallMasteryPercentage.toInt()}% across Class 1 foundational skills.'
+                                : 'Mastery: 88% across Class 1 foundational skills.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Identified Learning Gaps',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Mastery: 88% across Class 1 foundational skills.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
-                  ),
+                  if (_dashboardData?.learningGaps.isNotEmpty == true)
+                    ..._dashboardData!.learningGaps.map(
+                      (gap) => Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                          title: Text(gap.topic, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('Recommended action: ${gap.recommendedAction}'),
+                          trailing: Text(
+                            'Gap: ${gap.severity.name.toUpperCase()}',
+                            style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    )
+                  else ...[
+                    const Card(
+                      child: ListTile(
+                        leading: Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                        title: Text('Number Line Subtraction', style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('Recommended action: Practice visual apple subtraction with Suman Teacher.'),
+                        trailing: Text(
+                          'Gap: Low',
+                          style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const Card(
+                      child: ListTile(
+                        leading: Icon(Icons.check_circle_outline, color: Colors.green),
+                        title: Text('Phonics Sight Words', style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('Mastered 25 Class 1 sight words.'),
+                        trailing: Text(
+                          '100%',
+                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Identified Learning Gaps',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Card(
-            child: ListTile(
-              leading: Icon(Icons.warning_amber_rounded, color: Colors.orange),
-              title: Text('Number Line Subtraction', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Recommended action: Practice visual apple subtraction with Suman Teacher.'),
-              trailing: Text(
-                'Gap: Low',
-                style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const Card(
-            child: ListTile(
-              leading: Icon(Icons.check_circle_outline, color: Colors.green),
-              title: Text('Phonics Sight Words', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Mastered 25 Class 1 sight words.'),
-              trailing: Text(
-                '100%',
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

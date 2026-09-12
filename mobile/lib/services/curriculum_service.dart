@@ -1,4 +1,4 @@
-import 'package:mobile/models/curriculum.dart';
+import '../models/curriculum.dart';
 
 class CurriculumClientService {
   final String baseUrl;
