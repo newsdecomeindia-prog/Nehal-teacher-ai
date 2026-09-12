@@ -1,7 +1,7 @@
 """
 Service layer for Suman AI Teacher handling prompt construction,
 RAG curriculum grounding context retrieval, safety filtering,
-and response parsing.
+Rich Visual Cards generation, and response parsing.
 """
 
 import re
@@ -12,6 +12,8 @@ from backend.app.core.suman_persona import get_language_config
 from backend.app.schemas.curriculum import Concept, SubjectCode
 from backend.app.schemas.teacher import (
     InteractionMode,
+    RichVisualCardPayload,
+    RichVisualCardTitles,
     TeacherChatRequest,
     TeacherChatResponse,
 )
@@ -50,6 +52,54 @@ UNSAFE_KEYWORDS = [
     "gambling",
 ]
 
+# Sample Multi-Modal Rich Visual Cards Store
+RICH_VISUAL_CARDS_DB = {
+    "modi": RichVisualCardPayload(
+        entity_name="Narendra Modi",
+        image_url="https://assets.nehalai.com/images/pm_modi.jpg",
+        titles=RichVisualCardTitles(
+            english="Narendra Modi",
+            hindi="नरेंद्र मोदी",
+            marathi="नरेंद्र मोदी",
+        ),
+        pronunciation_audio="https://assets.nehalai.com/audio/pm_modi_pron.mp3",
+        simple_explanation=(
+            "नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे "
+            "देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।"
+        ),
+        checking_question="क्या आप जानते हैं कि भारत की राजधानी (Capital) कौन सी है?",
+        class_level=1,
+    ),
+    "apple": RichVisualCardPayload(
+        entity_name="Apple",
+        image_url="https://assets.nehalai.com/images/apple.jpg",
+        titles=RichVisualCardTitles(
+            english="Apple",
+            hindi="सेब",
+            marathi="सफरचंद",
+        ),
+        pronunciation_audio="https://assets.nehalai.com/audio/apple_pron.mp3",
+        simple_explanation="सेब एक मीठा और लाल फल है। यह सेहत के लिए बहुत अच्छा होता है!",
+        checking_question="सेब का रंग कौन सा होता है?",
+        class_level=1,
+    ),
+    "peacock": RichVisualCardPayload(
+        entity_name="Peacock",
+        image_url="https://assets.nehalai.com/images/peacock.jpg",
+        titles=RichVisualCardTitles(
+            english="Peacock",
+            hindi="मोर",
+            marathi="मोर",
+        ),
+        pronunciation_audio="https://assets.nehalai.com/audio/peacock_pron.mp3",
+        simple_explanation=(
+            "मोर भारत का राष्ट्रीय पक्षी है। इसके पंख बहुत सुंदर और रंग-बिरंगे होते हैं।"
+        ),
+        checking_question="क्या आपने बारिश में मोर को नाचते देखा है?",
+        class_level=1,
+    ),
+}
+
 
 class AITeacherService:
     @staticmethod
@@ -65,6 +115,18 @@ class AITeacherService:
             return True
         msg_lower = message.lower()
         return any(kw in msg_lower for kw in CONFUSION_KEYWORDS)
+
+    @staticmethod
+    def detect_rich_card(message: str) -> Optional[RichVisualCardPayload]:
+        """Check query for entity keywords to attach a Multi-Modal Rich Visual Card."""
+        msg_lower = message.lower()
+        if "modi" in msg_lower or "प्रधानमंत्री" in msg_lower or "prime minister" in msg_lower:
+            return RICH_VISUAL_CARDS_DB["modi"]
+        if "apple" in msg_lower or "सेब" in msg_lower or "सफरचंद" in msg_lower:
+            return RICH_VISUAL_CARDS_DB["apple"]
+        if "peacock" in msg_lower or "मोर" in msg_lower or "national bird" in msg_lower:
+            return RICH_VISUAL_CARDS_DB["peacock"]
+        return None
 
     @staticmethod
     def get_curriculum_grounding(
@@ -105,7 +167,7 @@ class AITeacherService:
     def process_chat_query(cls, request: TeacherChatRequest) -> TeacherChatResponse:
         """
         Process incoming student chat request through safety filtering,
-        RAG grounding, and fallback explanation logic.
+        RAG grounding, Rich Visual Card detection, and fallback explanation logic.
         """
         lang = request.language if request.language in ["en", "hi", "mr"] else "en"
         lang_config = get_language_config(lang)
@@ -118,15 +180,17 @@ class AITeacherService:
                 interaction_mode=InteractionMode.STANDARD,
                 is_fallback_explanation=False,
                 visual_cue_trigger=None,
+                rich_card=None,
                 grounded_concept_id=None,
                 safety_filtered=True,
                 encouragement_phrase=lang_config["encouragement"],
             )
 
-        # 2. Extract RAG curriculum grounding context
+        # 2. Extract RAG curriculum grounding context & Rich Card match
         subject_str, concept_obj, outcomes = cls.get_curriculum_grounding(
             request.subject_code, request.topic_id, request.concept_id
         )
+        rich_card = cls.detect_rich_card(request.message)
 
         concept_title = concept_obj.title if concept_obj else None
         concept_exp = concept_obj.explanation if concept_obj else None
@@ -143,7 +207,18 @@ class AITeacherService:
             learning_outcomes=outcomes,
         )
 
-        if is_confused:
+        if rich_card and not is_confused:
+            mode = InteractionMode.STANDARD
+            if lang == "hi":
+                response_text = "नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। यहाँ उनके बारे में कार्ड देखें:"
+            elif lang == "mr":
+                response_text = "नरेंद्र मोदी हे भारताचे सध्याचे पंतप्रधान आहेत। खालील कार्ड पहा:"
+            else:
+                response_text = (
+                    "Narendra Modi is the current Prime Minister of India. "
+                    "Here is a rich visual card for you:"
+                )
+        elif is_confused:
             mode = InteractionMode.FALLBACK_EXPLANATION
             _prompt_payload = get_fallback_explanation_prompt(
                 student_query=request.message,
@@ -163,9 +238,9 @@ class AITeacherService:
             elif lang == "mr":
                 response_text = (
                     f"{lang_config['fallback_prefix']} "
-                    f"समजा तुझ्याकडे ३ गोड आंबे आहेत. "
+                    f"समजा तुझ्याकडे ३ गोड आंबे आहेत। "
                     f"त्यातील १ आंबा मित्राला दिला, तर तुझ्याकडे २ आंबे राहतात! "
-                    f"{concept_title or 'हा घटक'} अगदी असाच सोपा आहे. "
+                    f"{concept_title or 'हा घटक'} अगदी असाच सोपा आहे। "
                     f"[Visual Cue: Three ripe yellow mangoes in a basket]"
                 )
             else:
@@ -209,6 +284,7 @@ class AITeacherService:
             interaction_mode=mode,
             is_fallback_explanation=is_confused,
             visual_cue_trigger=visual_cue,
+            rich_card=rich_card,
             grounded_concept_id=grounded_id,
             safety_filtered=False,
             encouragement_phrase=lang_config["encouragement"],
