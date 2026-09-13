@@ -68,6 +68,11 @@ class ExamPaper(BaseModel):
     duration_minutes: int = Field(default=15, ge=5, description="Suggested time limit")
     total_questions: int = Field(default=5, ge=1, description="Number of questions")
     total_marks: int = Field(default=50, ge=1, description="Maximum total marks")
+    allow_ai_hints: bool = Field(
+        default=False, description="Strict exam mode disables AI hints during test mode"
+    )
+    is_timed_quiz: bool = Field(default=True, description="Whether test has countdown timer")
+    chapter_id: Optional[str] = Field(None, description="Chapter or unit identifier")
     questions: List[ExamQuestion] = Field(default_factory=list, description="Questions")
 
 
@@ -112,12 +117,19 @@ class ExamSubmissionResponse(BaseModel):
     total_score: int = Field(..., ge=0, description="Total score obtained")
     max_score: int = Field(..., ge=1, description="Maximum achievable score")
     percentage: float = Field(..., ge=0.0, le=100.0, description="Percentage score")
+    time_taken_seconds: float = Field(default=0.0, ge=0.0, description="Time spent on exam")
+    ai_hints_used: int = Field(
+        default=0, ge=0, description="AI hints used (0 in strict test mode)"
+    )
     strength_areas: List[str] = Field(default_factory=list, description="Strength topics")
     weakness_areas: List[str] = Field(default_factory=list, description="Weakness topics")
     question_evaluations: List[QuestionEvaluation] = Field(
         default_factory=list, description="Detailed itemized evaluation"
     )
     feedback_message: str = Field(..., description="Encouraging summary feedback")
+    suresh_analysis: Optional[str] = Field(
+        None, description="Suresh AI post-exam diagnostic performance analysis"
+    )
 
 
 class SubjectMastery(BaseModel):
@@ -127,6 +139,28 @@ class SubjectMastery(BaseModel):
     topics_mastered: List[str] = Field(default_factory=list, description="Mastered topics")
     topics_needing_improvement: List[str] = Field(
         default_factory=list, description="Topics needing improvement"
+    )
+    time_spent_minutes: float = Field(
+        default=0.0, ge=0.0, description="Time spent learning subject"
+    )
+    accuracy_rate: float = Field(
+        default=0.0, ge=0.0, le=100.0, description="Subject accuracy percentage"
+    )
+    total_questions_attempted: int = Field(
+        default=0, ge=0, description="Total questions attempted"
+    )
+
+
+class WeeklySummary(BaseModel):
+    active_days_count: int = Field(default=5, ge=0, le=7, description="Days active this week")
+    total_study_minutes: float = Field(
+        default=180.0, ge=0.0, description="Total study minutes this week"
+    )
+    quizzes_completed: int = Field(
+        default=4, ge=0, description="Number of chapter quizzes completed"
+    )
+    average_accuracy_percentage: float = Field(
+        default=88.5, ge=0.0, le=100.0, description="Average accuracy across subjects"
     )
 
 
@@ -166,8 +200,17 @@ class ParentDashboardResponse(BaseModel):
     subject_mastery: List[SubjectMastery] = Field(
         default_factory=list, description="Subject mastery breakdown"
     )
+    suresh_ai_insights: List[str] = Field(
+        default_factory=list, description="Suresh AI study analytics insights & recommendations"
+    )
+    weekly_summary: WeeklySummary = Field(
+        default_factory=WeeklySummary, description="Weekly study activity summary"
+    )
     learning_gaps: List[LearningGapIndicator] = Field(
         default_factory=list, description="Active gap indicators"
     )
     strengths: List[str] = Field(default_factory=list, description="Highlighted strengths")
     consent_settings: DPDPParentConsent = Field(..., description="Privacy consent settings")
+    daily_screen_time_limit_minutes: int = Field(
+        default=45, ge=10, le=240, description="Daily screen time limit setting"
+    )

@@ -12,6 +12,8 @@ import 'package:nehal_teacher_ai_mobile/widgets/suman_avatar_header.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/rich_visual_card.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/homework_camera_widget.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/voice_mic_waveform.dart';
+import 'package:nehal_teacher_ai_mobile/widgets/parent_dashboard_widget.dart';
+import 'package:nehal_teacher_ai_mobile/widgets/exam_mode_widget.dart';
 
 void main() {
   runApp(const NehalTeacherApp());
@@ -56,6 +58,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     CurriculumWorldTab(),
     EnglishSpeakingTab(),
     KnowledgeWorldGkTab(),
+    ParentPortalNavigationWrapper(),
   ];
 
   @override
@@ -93,8 +96,55 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             selectedIcon: Icon(Icons.explore),
             label: 'GK Cards',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
+            label: 'Parent Portal',
+          ),
         ],
       ),
+    );
+  }
+}
+
+// Wrapper for switching between Parent Dashboard & Exam Mode within Parent Portal Tab
+class ParentPortalNavigationWrapper extends StatefulWidget {
+  const ParentPortalNavigationWrapper({super.key});
+
+  @override
+  State<ParentPortalNavigationWrapper> createState() => _ParentPortalNavigationWrapperState();
+}
+
+class _ParentPortalNavigationWrapperState extends State<ParentPortalNavigationWrapper> {
+  bool _isExamMode = false;
+  SubjectCategory _selectedExamSubject = SubjectCategory.math;
+
+  void _startExam(SubjectCategory subject) {
+    setState(() {
+      _selectedExamSubject = subject;
+      _isExamMode = true;
+    });
+  }
+
+  void _exitExam() {
+    setState(() {
+      _isExamMode = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isExamMode) {
+      return ExamModeWidget(
+        studentId: 'student_class1_001',
+        subject: _selectedExamSubject,
+        gradeLevel: 1,
+        onExitExam: _exitExam,
+      );
+    }
+
+    return ParentDashboardWidget(
+      onStartExamPressed: _startExam,
     );
   }
 }

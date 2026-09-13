@@ -203,6 +203,9 @@ class AnalyticsService:
             duration_minutes=max(10, len(selected_questions) * 3),
             total_questions=len(selected_questions),
             total_marks=total_marks,
+            allow_ai_hints=False,  # Strict exam mode: no AI hints allowed during test
+            is_timed_quiz=True,
+            chapter_id=f"ch-{req.subject.value}-g{req.grade_level}-01",
             questions=selected_questions,
         )
 
@@ -255,13 +258,32 @@ class AnalyticsService:
 
         max_score = max(max_score, 1)
         percentage = round((total_score / max_score) * 100.0, 1)
+        total_time_seconds = sum(ans.time_spent_seconds for ans in req.answers)
+
+        str_areas = ", ".join(strengths) if strengths else "All topics"
+        weak_areas = ", ".join(weaknesses) if weaknesses else "General practice"
+        gap_areas = ", ".join(weaknesses) if weaknesses else "foundational concepts"
 
         if percentage >= 80:
             feedback = "Shabash! Outstanding mastery! Keep up the brilliant effort!"
+            suresh_analysis = (
+                "Suresh AI Analysis: Exceptional conceptual grasp. "
+                f"Child scored {percentage}%. Strengths: {str_areas}."
+            )
         elif percentage >= 50:
             feedback = "Great effort! You're making good progress. A little more practice helps!"
+            suresh_analysis = (
+                f"Suresh AI Analysis: Steady performance at {percentage}%. "
+                f"Focus area for next session: {weak_areas}."
+            )
         else:
-            feedback = "Good try! Suman Ma'am is here to help you master these concepts."
+            feedback = (
+                "Good try! Suman Ma'am and Suresh Sir are here to help you master these concepts."
+            )
+            suresh_analysis = (
+                f"Suresh AI Analysis: Diagnostic indicates gaps in {gap_areas}. "
+                "Recommended step: Review Suman Teacher's interactive card explanations."
+            )
 
         submission_id = f"sub-{uuid.uuid4().hex[:8]}"
 
@@ -273,10 +295,13 @@ class AnalyticsService:
             total_score=total_score,
             max_score=max_score,
             percentage=percentage,
+            time_taken_seconds=total_time_seconds,
+            ai_hints_used=0,  # Strict exam mode ensures 0 hints used
             strength_areas=strengths,
             weakness_areas=weaknesses,
             question_evaluations=evaluations,
             feedback_message=feedback,
+            suresh_analysis=suresh_analysis,
         )
 
     def get_parent_dashboard(
@@ -297,6 +322,8 @@ class AnalyticsService:
             )
             self._consent_db[student_id] = consent
 
+        from backend.app.schemas.analytics import WeeklySummary
+
         subject_masteries = [
             SubjectMastery(
                 subject=SubjectCategory.MATH,
@@ -304,6 +331,9 @@ class AnalyticsService:
                 mastery_level="Proficient",
                 topics_mastered=["Addition", "Shapes & Geometry"],
                 topics_needing_improvement=["Pattern Recognition"],
+                time_spent_minutes=240.0,
+                accuracy_rate=85.0,
+                total_questions_attempted=45,
             ),
             SubjectMastery(
                 subject=SubjectCategory.HINDI,
@@ -311,6 +341,9 @@ class AnalyticsService:
                 mastery_level="Master",
                 topics_mastered=["Vowels & Phonology", "Consonants"],
                 topics_needing_improvement=[],
+                time_spent_minutes=180.0,
+                accuracy_rate=90.0,
+                total_questions_attempted=38,
             ),
             SubjectMastery(
                 subject=SubjectCategory.ENGLISH,
@@ -318,6 +351,9 @@ class AnalyticsService:
                 mastery_level="Developing",
                 topics_mastered=["Alphabet Recognition"],
                 topics_needing_improvement=["Plurals", "Pronunciation"],
+                time_spent_minutes=210.0,
+                accuracy_rate=75.0,
+                total_questions_attempted=50,
             ),
             SubjectMastery(
                 subject=SubjectCategory.EVS,
@@ -325,10 +361,35 @@ class AnalyticsService:
                 mastery_level="Proficient",
                 topics_mastered=["Human Body"],
                 topics_needing_improvement=["Plant Life"],
+                time_spent_minutes=120.0,
+                accuracy_rate=80.0,
+                total_questions_attempted=30,
             ),
         ]
 
         overall = sum(m.score_percentage for m in subject_masteries) / len(subject_masteries)
+
+        suresh_ai_insights = [
+            (
+                "Suresh AI Study Analytics: Nehal demonstrates 90% peak accuracy "
+                "in Hindi Phonology during morning sessions."
+            ),
+            (
+                "Weak Area Alert: Practice 10 minutes on English Plurals & Math "
+                "Pattern Recognition this week."
+            ),
+            (
+                "Study Recommendation: Complete 1 timed chapter quiz in Math Jungle "
+                "to boost skip-counting speed."
+            ),
+        ]
+
+        weekly_summary = WeeklySummary(
+            active_days_count=5,
+            total_study_minutes=180.0,
+            quizzes_completed=4,
+            average_accuracy_percentage=88.5,
+        )
 
         learning_gaps = [
             LearningGapIndicator(
@@ -362,9 +423,12 @@ class AnalyticsService:
             total_learning_hours=12.5,
             total_exams_taken=6,
             subject_mastery=subject_masteries,
+            suresh_ai_insights=suresh_ai_insights,
+            weekly_summary=weekly_summary,
             learning_gaps=learning_gaps,
             strengths=strengths,
             consent_settings=consent,
+            daily_screen_time_limit_minutes=45,
         )
 
     def update_parent_consent(self, consent: DPDPParentConsent) -> DPDPParentConsent:
