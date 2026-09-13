@@ -4,6 +4,7 @@ Validates English speaking schemas, progression engine service,
 API endpoints (/prompts, /evaluate), mobile DTOs, gentle feedback logic,
 absence of forbidden Phase 6+ features, pytest suite, ruff linting, and docs.
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -43,9 +44,7 @@ def verify_english_speaking_api_endpoints() -> bool:
     # 1. GET /prompts
     prompts_res = client.get("/api/v1/english-speaking/prompts")
     if prompts_res.status_code != 200 or "prompts" not in prompts_res.json():
-        print(
-            f"FAIL: /api/v1/english-speaking/prompts returned status {prompts_res.status_code}"
-        )
+        print(f"FAIL: /api/v1/english-speaking/prompts returned status {prompts_res.status_code}")
         return False
 
     # 2. POST /evaluate
@@ -59,9 +58,7 @@ def verify_english_speaking_api_endpoints() -> bool:
         },
     )
     if eval_res.status_code != 200 or "feedback" not in eval_res.json():
-        print(
-            f"FAIL: /api/v1/english-speaking/evaluate returned status {eval_res.status_code}"
-        )
+        print(f"FAIL: /api/v1/english-speaking/evaluate returned status {eval_res.status_code}")
         return False
 
     print("English Speaking API endpoints verification: PASS")

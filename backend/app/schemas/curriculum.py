@@ -27,46 +27,34 @@ class LearningOutcome(BaseModel):
     understanding_first_principle: str = Field(
         ..., description="Core pedagogical principle driving this outcome"
     )
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class Concept(BaseModel):
     id: str = Field(..., description="Concept ID")
     title: str = Field(..., description="Concept title")
     explanation: str = Field(..., description="Kid-friendly conceptual explanation")
-    visual_cues: List[str] = Field(
-        default_factory=list, description="Visual hints descriptions"
-    )
+    visual_cues: List[str] = Field(default_factory=list, description="Visual hints descriptions")
     learning_outcomes: List[LearningOutcome] = Field(default_factory=list)
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class ExerciseItem(BaseModel):
     id: str = Field(..., description="Exercise ID")
     type: ExerciseType = Field(..., description="Type of practice exercise item")
     question: str = Field(..., description="Exercise prompt or question text")
-    options: List[str] = Field(
-        default_factory=list, description="Choices for multiple choice"
-    )
+    options: List[str] = Field(default_factory=list, description="Choices for multiple choice")
     correct_answer: str = Field(..., description="Correct answer string")
     hint: Optional[str] = Field(None, description="Gentle hint for student guidance")
     explanation: Optional[str] = Field(None, description="Concept feedback after attempt")
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class AssessmentItem(BaseModel):
     id: str = Field(..., description="Assessment ID")
     exercise: ExerciseItem
     weightage: float = Field(default=1.0, description="Score weightage")
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class Subtopic(BaseModel):
@@ -75,9 +63,7 @@ class Subtopic(BaseModel):
     sequence_order: int = Field(..., description="Ordering sequence")
     concepts: List[Concept] = Field(default_factory=list)
     exercises: List[ExerciseItem] = Field(default_factory=list)
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class Topic(BaseModel):
@@ -85,9 +71,7 @@ class Topic(BaseModel):
     title: str = Field(..., description="Topic title")
     sequence_order: int = Field(..., description="Ordering sequence")
     subtopics: List[Subtopic] = Field(default_factory=list)
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class Subject(BaseModel):
@@ -99,9 +83,7 @@ class Subject(BaseModel):
     language: str = Field(..., description="Primary language identifier")
     grade_level: int = Field(default=1, description="Grade level (1 for Class 1)")
     topics: List[Topic] = Field(default_factory=list)
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 class CurriculumVersion(BaseModel):
@@ -109,9 +91,7 @@ class CurriculumVersion(BaseModel):
     release_date: str = Field(..., description="ISO release date")
     grade_level: int = Field(default=1, description="Target class/grade level")
     cbse_compliant: bool = Field(default=True, description="CBSE alignment flag")
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
     supported_subjects: List[SubjectCode] = Field(default_factory=list)
 
 
@@ -125,9 +105,7 @@ class LessonBlueprint(BaseModel):
     concepts: List[Concept] = Field(default_factory=list)
     assessment_items: List[AssessmentItem] = Field(default_factory=list)
     curriculum_version: str = Field(default="1.0.0")
-    cbse_academic_year: str = Field(
-        default="2026-27", description="CBSE Academic Year Versioning"
-    )
+    cbse_academic_year: str = Field(default="2026-27", description="CBSE Academic Year Versioning")
 
 
 # ==========================================

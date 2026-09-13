@@ -52,8 +52,7 @@ SAMPLE_WORLDS: List[WorldTheme] = [
                                 text="5 bananas",
                                 is_correct=True,
                                 explanation=(
-                                    "Shabash! 3 + 2 = 5 bananas! You helped Raja count "
-                                    "them all!"
+                                    "Shabash! 3 + 2 = 5 bananas! You helped Raja count them all!"
                                 ),
                                 next_node_id="node-m1-02",
                                 xp_reward=20,
@@ -94,9 +93,7 @@ SAMPLE_WORLDS: List[WorldTheme] = [
                                 choice_id="opt-m1-02b",
                                 text="3 bananas",
                                 is_correct=False,
-                                explanation=(
-                                    "Good try! 5 minus 1 leaves 4 bananas. Keep going!"
-                                ),
+                                explanation=("Good try! 5 minus 1 leaves 4 bananas. Keep going!"),
                                 next_node_id=None,
                                 xp_reward=10,
                             ),
@@ -147,8 +144,7 @@ SAMPLE_WORLDS: List[WorldTheme] = [
                                 text="DOG",
                                 is_correct=False,
                                 explanation=(
-                                    "Close! CAT and HAT end with the same 'AT' sound. "
-                                    "Great effort!"
+                                    "Close! CAT and HAT end with the same 'AT' sound. Great effort!"
                                 ),
                                 next_node_id=None,
                                 xp_reward=10,
@@ -163,9 +159,7 @@ SAMPLE_WORLDS: List[WorldTheme] = [
         world_id="world-science-safari",
         category=WorldThemeCategory.SCIENCE_SAFARI,
         name="Science Safari Explorer",
-        description=(
-            "Discover animals, plants, water cycles, and natural wonders across India!"
-        ),
+        description=("Discover animals, plants, water cycles, and natural wonders across India!"),
         recommended_grade=1,
         total_quests=1,
         quests=[
@@ -202,8 +196,7 @@ SAMPLE_WORLDS: List[WorldTheme] = [
                                 text="Chocolate and Milk",
                                 is_correct=False,
                                 explanation=(
-                                    "Plants love sunlight and water best! Great "
-                                    "imagination though!"
+                                    "Plants love sunlight and water best! Great imagination though!"
                                 ),
                                 next_node_id=None,
                                 xp_reward=10,
@@ -293,9 +286,7 @@ class KnowledgeWorldService:
             )
         return STUDENT_PROGRESS_STORE[student_id]
 
-    def complete_quest_node(
-        self, request: NodeCompletionRequest
-    ) -> NodeCompletionResponse:
+    def complete_quest_node(self, request: NodeCompletionRequest) -> NodeCompletionResponse:
         """Resolve interactive choice, award non-monetary XP/badges, advance quest tree."""
         quest = self.get_quest_by_id(request.quest_id)
         if not quest:
@@ -328,11 +319,7 @@ class KnowledgeWorldService:
             )
 
         selected_option = next(
-            (
-                opt
-                for opt in node.choice_options
-                if opt.choice_id == request.selected_choice_id
-            ),
+            (opt for opt in node.choice_options if opt.choice_id == request.selected_choice_id),
             None,
         )
 
@@ -379,8 +366,7 @@ class KnowledgeWorldService:
             progress.completed_quests.append(request.quest_id)
 
         feedback_text = (
-            selected_option.explanation
-            or "Great effort! Suman Teacher is proud of your progress!"
+            selected_option.explanation or "Great effort! Suman Teacher is proud of your progress!"
         )
 
         return NodeCompletionResponse(

@@ -32,12 +32,8 @@ class ChoiceOption(BaseModel):
     explanation: Optional[str] = Field(
         None, description="Encouraging feedback/explanation for choice"
     )
-    next_node_id: Optional[str] = Field(
-        None, description="Next quest node ID to transition to"
-    )
-    xp_reward: int = Field(
-        default=10, ge=0, description="Non-monetary XP rewarded for choice"
-    )
+    next_node_id: Optional[str] = Field(None, description="Next quest node ID to transition to")
+    xp_reward: int = Field(default=10, ge=0, description="Non-monetary XP rewarded for choice")
 
 
 class QuestNode(BaseModel):
@@ -54,9 +50,7 @@ class QuestNode(BaseModel):
     media_asset_url: Optional[str] = Field(
         None, description="Visual illustration or audio prompt asset"
     )
-    target_grade: int = Field(
-        default=1, ge=1, le=5, description="Target Class level (1 to 5)"
-    )
+    target_grade: int = Field(default=1, ge=1, le=5, description="Target Class level (1 to 5)")
 
 
 class StoryQuest(BaseModel):
@@ -64,14 +58,10 @@ class StoryQuest(BaseModel):
     world_id: str = Field(..., description="Parent world ID")
     title: str = Field(..., description="Title of the quest")
     description: str = Field(..., description="Brief quest summary")
-    grade_level: int = Field(
-        default=1, ge=1, le=5, description="Target Class level (1 to 5)"
-    )
+    grade_level: int = Field(default=1, ge=1, le=5, description="Target Class level (1 to 5)")
     total_nodes: int = Field(default=1, ge=1, description="Number of story nodes in quest")
     initial_node_id: str = Field(..., description="Entry node ID for the quest")
-    nodes: List[QuestNode] = Field(
-        default_factory=list, description="All nodes in quest tree"
-    )
+    nodes: List[QuestNode] = Field(default_factory=list, description="All nodes in quest tree")
 
 
 class Badge(BaseModel):
@@ -79,15 +69,9 @@ class Badge(BaseModel):
     name: str = Field(..., description="Child-friendly badge name")
     description: str = Field(..., description="How badge is earned")
     icon_url: Optional[str] = Field(None, description="Icon asset path or URL")
-    category: BadgeCategory = Field(
-        default=BadgeCategory.EXPLORER, description="Badge category"
-    )
-    required_xp: int = Field(
-        default=50, ge=0, description="XP threshold to unlock badge"
-    )
-    unlocked_at: Optional[str] = Field(
-        None, description="Timestamp when student earned badge"
-    )
+    category: BadgeCategory = Field(default=BadgeCategory.EXPLORER, description="Badge category")
+    required_xp: int = Field(default=50, ge=0, description="XP threshold to unlock badge")
+    unlocked_at: Optional[str] = Field(None, description="Timestamp when student earned badge")
 
 
 class WorldTheme(BaseModel):
@@ -95,15 +79,9 @@ class WorldTheme(BaseModel):
     category: WorldThemeCategory = Field(..., description="Theme category")
     name: str = Field(..., description="World name (e.g. Math Jungle)")
     description: str = Field(..., description="Description of the world")
-    recommended_grade: int = Field(
-        default=1, ge=1, le=5, description="Target grade level"
-    )
-    total_quests: int = Field(
-        default=1, ge=0, description="Count of quests in this world"
-    )
-    quests: List[StoryQuest] = Field(
-        default_factory=list, description="Available quests in world"
-    )
+    recommended_grade: int = Field(default=1, ge=1, le=5, description="Target grade level")
+    total_quests: int = Field(default=1, ge=0, description="Count of quests in this world")
+    quests: List[StoryQuest] = Field(default_factory=list, description="Available quests in world")
 
 
 class StudentProgress(BaseModel):
@@ -111,9 +89,7 @@ class StudentProgress(BaseModel):
     current_world_id: Optional[str] = Field(None, description="Currently active world")
     current_quest_id: Optional[str] = Field(None, description="Currently active quest")
     current_node_id: Optional[str] = Field(None, description="Currently active quest node")
-    total_xp: int = Field(
-        default=0, ge=0, description="Accumulated non-monetary experience points"
-    )
+    total_xp: int = Field(default=0, ge=0, description="Accumulated non-monetary experience points")
     level: int = Field(default=1, ge=1, description="Calculated student level from XP")
     stars_count: int = Field(default=0, ge=0, description="Stars collected during quests")
     completed_quests: List[str] = Field(
@@ -148,9 +124,5 @@ class NodeCompletionResponse(BaseModel):
     new_badges_unlocked: List[Badge] = Field(
         default_factory=list, description="Badges unlocked by this node completion"
     )
-    feedback_message: str = Field(
-        ..., description="Encouraging child-friendly feedback message"
-    )
-    is_quest_completed: bool = Field(
-        default=False, description="True if quest is complete"
-    )
+    feedback_message: str = Field(..., description="Encouraging child-friendly feedback message")
+    is_quest_completed: bool = Field(default=False, description="True if quest is complete")

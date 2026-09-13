@@ -2,6 +2,7 @@
 Master verification script executing all phase verification scripts (Phase 0 through Phase 7)
 sequentially, followed by running the entire pytest test suite.
 """
+
 import subprocess
 import sys
 from pathlib import Path

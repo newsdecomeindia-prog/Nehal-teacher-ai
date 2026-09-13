@@ -77,9 +77,7 @@ class MockImageService(BaseImageService):
 
     async def scan_homework_photo(self, request: ImageScanRequest) -> ImageScanResponse:
         """Processes homework image scan request with privacy filtering and mock OCR."""
-        is_safe, safety_status, safety_tags = self.privacy_filter.inspect_and_filter_image(
-            request
-        )
+        is_safe, safety_status, safety_tags = self.privacy_filter.inspect_and_filter_image(request)
 
         if not is_safe:
             return ImageScanResponse(
@@ -98,8 +96,7 @@ class MockImageService(BaseImageService):
 
         if "math" in subject:
             ocr_raw = (
-                "Student Name: Nehal Kumar\n1) 5 + 3 = 8\n"
-                "2) 10 - 4 = 6\n3) Count the apples: 7"
+                "Student Name: Nehal Kumar\n1) 5 + 3 = 8\n2) 10 - 4 = 6\n3) Count the apples: 7"
             )
             homework_type = "math_worksheet"
             regions = [

@@ -4,6 +4,7 @@ Validates Suman AI Teacher architecture, multi-lingual prompt system,
 RAG grounding, safety filters, mobile client DTOs, endpoint contracts,
 absence of forbidden Phase 4+ features, and executes unit tests.
 """
+
 import subprocess
 import sys
 from pathlib import Path

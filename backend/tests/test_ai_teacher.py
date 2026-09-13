@@ -117,3 +117,41 @@ def test_teacher_chat_safety_redirection():
     data = res.json()
     assert data["safety_filtered"] is True
     assert "Suman Teacher" in data["response_text"]
+
+
+def test_ai_identity_transparency_in_prompt():
+    prompt = build_system_prompt("en")
+    assert "AI teacher assistant" in prompt
+    assert "Never claim to be a human being" in prompt
+
+
+def test_multilingual_context_preservation_across_languages():
+    # 1. Start query in Hindi with concept grounding
+    hi_req = {
+        "student_id": "std-multi-01",
+        "message": "मुझे यह समझ नहीं आया",
+        "language": "hi",
+        "subject_code": "mathematics",
+        "concept_id": "con-mth-01",
+        "is_confused": True,
+    }
+    res_hi = client.post("/api/v1/teacher/chat", json=hi_req)
+    assert res_hi.status_code == 200
+    hi_data = res_hi.json()
+    assert hi_data["grounded_concept_id"] == "con-mth-01"
+    assert hi_data["language"] == "hi"
+
+    # 2. Switch language mid-conversation to Marathi maintaining same concept_id
+    mr_req = {
+        "student_id": "std-multi-01",
+        "message": "मला पुन्हा सांगा",
+        "language": "mr",
+        "subject_code": "mathematics",
+        "concept_id": "con-mth-01",
+        "is_confused": True,
+    }
+    res_mr = client.post("/api/v1/teacher/chat", json=mr_req)
+    assert res_mr.status_code == 200
+    mr_data = res_mr.json()
+    assert mr_data["grounded_concept_id"] == "con-mth-01"
+    assert mr_data["language"] == "mr"

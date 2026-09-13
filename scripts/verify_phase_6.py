@@ -6,6 +6,7 @@ badge/reward calculation, absence of forbidden Phase 7+ features
 (exams/analytics, live payments, App Store deployment),
 pytest suite, ruff linting, and documentation.
 """
+
 import subprocess
 import sys
 from pathlib import Path

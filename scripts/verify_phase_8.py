@@ -4,6 +4,7 @@ Executes master verification across all phases (Phase 0 through 7), validates Ph
 security readiness tests, Docker configurations, Mobile hardening modules, and
 final documentation.
 """
+
 import subprocess
 import sys
 from pathlib import Path

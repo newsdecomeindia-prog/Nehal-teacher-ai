@@ -22,7 +22,7 @@ speaking_service = EnglishSpeakingService()
 def get_speaking_prompts(
     tier: Optional[DifficultyTier] = Query(
         None, description="Filter prompts by difficulty tier (level_1, level_2, level_3)"
-    )
+    ),
 ) -> PromptsListResponse:
     """Fetch practice prompts for English small-sentence speaking exercises."""
     prompts = speaking_service.get_prompts(tier=tier)
