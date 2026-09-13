@@ -64,9 +64,11 @@ def test_teacher_chat_standard_flow():
     res = client.post("/api/v1/teacher/chat", json=payload)
     assert res.status_code == 200
     data = res.json()
-    assert "Letter 'A' makes the 'ah' sound" in data["response_text"]
     assert data["interaction_mode"] == InteractionMode.STANDARD.value
     assert data["grounded_concept_id"] == "con-eng-01"
+    assert data["simple_explanation"] is not None
+    assert data["real_life_example"] is not None
+    assert data["checking_question"] is not None
 
 
 def test_teacher_chat_fallback_explanation():
@@ -83,7 +85,25 @@ def test_teacher_chat_fallback_explanation():
     data = res.json()
     assert data["interaction_mode"] == InteractionMode.FALLBACK_EXPLANATION.value
     assert data["is_fallback_explanation"] is True
+    assert data["teaching_strategy"] == "simpler_analogy"
     assert data["visual_cue_trigger"] is not None
+
+
+def test_teacher_chat_story_fallback_explanation():
+    payload = {
+        "student_id": "std-123",
+        "message": "मुझे समझ नहीं आया, कहानी सुनाओ",
+        "language": "hi",
+        "subject_code": "mathematics",
+        "concept_id": "con-mth-03",
+        "is_confused": True,
+    }
+    res = client.post("/api/v1/teacher/chat", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["interaction_mode"] == InteractionMode.FALLBACK_EXPLANATION.value
+    assert data["teaching_strategy"] == "story"
+    assert "कहानी" in data["simple_explanation"]
 
 
 def test_teacher_chat_safety_redirection():

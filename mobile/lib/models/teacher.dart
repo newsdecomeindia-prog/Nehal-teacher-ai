@@ -14,6 +14,12 @@ class TeacherChatMessage {
   final bool isFallbackExplanation;
   final String? visualCueTrigger;
   final RichVisualCardData? richCard;
+  final String? simpleExplanation;
+  final String? realLifeExample;
+  final String? checkingQuestion;
+  final String? childResponseEvaluation;
+  final String? supportiveCorrection;
+  final String teachingStrategy;
 
   TeacherChatMessage({
     required this.id,
@@ -23,6 +29,12 @@ class TeacherChatMessage {
     this.isFallbackExplanation = false,
     this.visualCueTrigger,
     this.richCard,
+    this.simpleExplanation,
+    this.realLifeExample,
+    this.checkingQuestion,
+    this.childResponseEvaluation,
+    this.supportiveCorrection,
+    this.teachingStrategy = 'standard_analogy',
   });
 
   factory TeacherChatMessage.fromJson(Map<String, dynamic> json) {
@@ -38,6 +50,12 @@ class TeacherChatMessage {
       richCard: json['rich_card'] != null
           ? RichVisualCardData.fromJson(json['rich_card'] as Map<String, dynamic>)
           : null,
+      simpleExplanation: json['simple_explanation'] as String?,
+      realLifeExample: json['real_life_example'] as String?,
+      checkingQuestion: json['checking_question'] as String?,
+      childResponseEvaluation: json['child_response_evaluation'] as String?,
+      supportiveCorrection: json['supportive_correction'] as String?,
+      teachingStrategy: json['teaching_strategy'] as String? ?? 'standard_analogy',
     );
   }
 
@@ -48,6 +66,12 @@ class TeacherChatMessage {
         'timestamp': timestamp.toIso8601String(),
         'is_fallback_explanation': isFallbackExplanation,
         'visual_cue_trigger': visualCueTrigger,
+        'simple_explanation': simpleExplanation,
+        'real_life_example': realLifeExample,
+        'checking_question': checkingQuestion,
+        'child_response_evaluation': childResponseEvaluation,
+        'supportive_correction': supportiveCorrection,
+        'teaching_strategy': teachingStrategy,
       };
 }
 
@@ -94,6 +118,12 @@ class TeacherChatResponse {
   final String? groundedConceptId;
   final bool safetyFiltered;
   final String? encouragementPhrase;
+  final String? simpleExplanation;
+  final String? realLifeExample;
+  final String? checkingQuestion;
+  final String? childResponseEvaluation;
+  final String? supportiveCorrection;
+  final String teachingStrategy;
 
   TeacherChatResponse({
     required this.responseText,
@@ -105,6 +135,12 @@ class TeacherChatResponse {
     this.groundedConceptId,
     this.safetyFiltered = false,
     this.encouragementPhrase,
+    this.simpleExplanation,
+    this.realLifeExample,
+    this.checkingQuestion,
+    this.childResponseEvaluation,
+    this.supportiveCorrection,
+    this.teachingStrategy = 'standard_analogy',
   });
 
   factory TeacherChatResponse.fromJson(Map<String, dynamic> json) {
@@ -120,6 +156,12 @@ class TeacherChatResponse {
       groundedConceptId: json['grounded_concept_id'] as String?,
       safetyFiltered: json['safety_filtered'] as bool? ?? false,
       encouragementPhrase: json['encouragement_phrase'] as String?,
+      simpleExplanation: json['simple_explanation'] as String?,
+      realLifeExample: json['real_life_example'] as String?,
+      checkingQuestion: json['checking_question'] as String?,
+      childResponseEvaluation: json['child_response_evaluation'] as String?,
+      supportiveCorrection: json['supportive_correction'] as String?,
+      teachingStrategy: json['teaching_strategy'] as String? ?? 'standard_analogy',
     );
   }
 
@@ -132,6 +174,12 @@ class TeacherChatResponse {
         'grounded_concept_id': groundedConceptId,
         'safety_filtered': safetyFiltered,
         'encouragement_phrase': encouragementPhrase,
+        'simple_explanation': simpleExplanation,
+        'real_life_example': realLifeExample,
+        'checking_question': checkingQuestion,
+        'child_response_evaluation': childResponseEvaluation,
+        'supportive_correction': supportiveCorrection,
+        'teaching_strategy': teachingStrategy,
       };
 }
 

@@ -5,8 +5,10 @@ from fastapi import APIRouter, HTTPException, status
 from backend.app.schemas.curriculum import (
     CurriculumVersion,
     LessonBlueprint,
+    ProgressUpdateRequest,
     Subject,
     SubjectCode,
+    SureshStudyGuideSummary,
     Topic,
 )
 from backend.app.services.curriculum_service import CurriculumService
@@ -60,3 +62,15 @@ def get_lesson_blueprint(lesson_id: str) -> LessonBlueprint:
             detail=f"Lesson blueprint with ID '{lesson_id}' not found.",
         )
     return blueprint
+
+
+@router.get("/study-guide/{student_id}", response_model=SureshStudyGuideSummary)
+def get_suresh_study_guide(student_id: str) -> SureshStudyGuideSummary:
+    """Get Suresh AI Study Guide summary with progress, practice reminders, and prompts."""
+    return CurriculumService.get_suresh_study_guide(student_id)
+
+
+@router.post("/study-guide/progress", response_model=SureshStudyGuideSummary)
+def update_study_progress(req: ProgressUpdateRequest) -> SureshStudyGuideSummary:
+    """Submit progress update for completed concept or practice module."""
+    return CurriculumService.update_study_progress(req)
