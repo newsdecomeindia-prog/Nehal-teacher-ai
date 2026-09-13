@@ -27,6 +27,9 @@ class LearningOutcome(BaseModel):
     understanding_first_principle: str = Field(
         ..., description="Core pedagogical principle driving this outcome"
     )
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class Concept(BaseModel):
@@ -37,6 +40,9 @@ class Concept(BaseModel):
         default_factory=list, description="Visual hints descriptions"
     )
     learning_outcomes: List[LearningOutcome] = Field(default_factory=list)
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class ExerciseItem(BaseModel):
@@ -49,12 +55,18 @@ class ExerciseItem(BaseModel):
     correct_answer: str = Field(..., description="Correct answer string")
     hint: Optional[str] = Field(None, description="Gentle hint for student guidance")
     explanation: Optional[str] = Field(None, description="Concept feedback after attempt")
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class AssessmentItem(BaseModel):
     id: str = Field(..., description="Assessment ID")
     exercise: ExerciseItem
     weightage: float = Field(default=1.0, description="Score weightage")
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class Subtopic(BaseModel):
@@ -63,6 +75,9 @@ class Subtopic(BaseModel):
     sequence_order: int = Field(..., description="Ordering sequence")
     concepts: List[Concept] = Field(default_factory=list)
     exercises: List[ExerciseItem] = Field(default_factory=list)
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class Topic(BaseModel):
@@ -70,6 +85,9 @@ class Topic(BaseModel):
     title: str = Field(..., description="Topic title")
     sequence_order: int = Field(..., description="Ordering sequence")
     subtopics: List[Subtopic] = Field(default_factory=list)
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class Subject(BaseModel):
@@ -81,6 +99,9 @@ class Subject(BaseModel):
     language: str = Field(..., description="Primary language identifier")
     grade_level: int = Field(default=1, description="Grade level (1 for Class 1)")
     topics: List[Topic] = Field(default_factory=list)
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
 
 
 class CurriculumVersion(BaseModel):
@@ -88,6 +109,9 @@ class CurriculumVersion(BaseModel):
     release_date: str = Field(..., description="ISO release date")
     grade_level: int = Field(default=1, description="Target class/grade level")
     cbse_compliant: bool = Field(default=True, description="CBSE alignment flag")
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
     supported_subjects: List[SubjectCode] = Field(default_factory=list)
 
 
@@ -101,3 +125,51 @@ class LessonBlueprint(BaseModel):
     concepts: List[Concept] = Field(default_factory=list)
     assessment_items: List[AssessmentItem] = Field(default_factory=list)
     curriculum_version: str = Field(default="1.0.0")
+    cbse_academic_year: str = Field(
+        default="2026-27", description="CBSE Academic Year Versioning"
+    )
+
+
+# ==========================================
+# Suresh AI Study Guide Data Schemas
+# ==========================================
+class StudyProgressTrack(BaseModel):
+    student_id: str = Field(..., description="Student ID")
+    completed_concept_ids: List[str] = Field(default_factory=list)
+    completed_exercise_ids: List[str] = Field(default_factory=list)
+    mastery_percentage: float = Field(default=0.0)
+    last_active_date: str = Field(default="2026-09-11")
+
+
+class DailyPracticeReminder(BaseModel):
+    reminder_id: str = Field(..., description="Reminder ID")
+    student_id: str = Field(..., description="Student ID")
+    message: str = Field(..., description="Encouragement message from Suresh Teacher")
+    recommended_subject: SubjectCode = Field(..., description="Recommended subject")
+    recommended_topic_id: str = Field(..., description="Target topic ID")
+    target_minutes: int = Field(default=15, description="Target practice duration")
+
+
+class RevisionPrompt(BaseModel):
+    prompt_id: str = Field(..., description="Revision prompt ID")
+    student_id: str = Field(..., description="Student ID")
+    concept_id: str = Field(..., description="Concept ID needing revision")
+    prompt_question: str = Field(..., description="Quick recall question for student")
+    revision_reason: str = Field(
+        default="spaced_repetition", description="Spaced repetition reason"
+    )
+
+
+class SureshStudyGuideSummary(BaseModel):
+    student_id: str = Field(..., description="Student ID")
+    mentor_name: str = Field(default="Suresh Teacher", description="Mentor persona name")
+    progress: StudyProgressTrack = Field(..., description="Progress details")
+    daily_reminders: List[DailyPracticeReminder] = Field(default_factory=list)
+    revision_prompts: List[RevisionPrompt] = Field(default_factory=list)
+
+
+class ProgressUpdateRequest(BaseModel):
+    student_id: str = Field(..., description="Student ID")
+    concept_id: Optional[str] = Field(None, description="Concept ID completed")
+    exercise_id: Optional[str] = Field(None, description="Exercise ID attempted")
+    is_correct: bool = Field(default=True, description="True if attempt was correct")

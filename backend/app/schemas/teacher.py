@@ -73,3 +73,22 @@ class TeacherChatResponse(BaseModel):
         default=False, description="True if response/query triggered child safety filter"
     )
     encouragement_phrase: Optional[str] = Field(None, description="Warm supportive phrase")
+    simple_explanation: Optional[str] = Field(
+        None, description="Kid-friendly simple conceptual explanation"
+    )
+    real_life_example: Optional[str] = Field(
+        None, description="Relatable everyday real-life example"
+    )
+    checking_question: Optional[str] = Field(
+        None, description="Interactive checking question to verify comprehension"
+    )
+    child_response_evaluation: Optional[str] = Field(
+        None, description="Evaluation feedback on child's previous attempt"
+    )
+    supportive_correction: Optional[str] = Field(
+        None, description="Warm supportive correction and guidance"
+    )
+    teaching_strategy: str = Field(
+        default="standard_analogy",
+        description="Strategy: 'story', 'simpler_analogy', 'visual', or 'standard_analogy'",
+    )

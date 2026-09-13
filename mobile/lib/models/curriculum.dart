@@ -19,6 +19,7 @@ class LearningOutcome {
   final String description;
   final String bloomsLevel;
   final String understandingFirstPrinciple;
+  final String cbseAcademicYear;
 
   LearningOutcome({
     required this.id,
@@ -26,6 +27,7 @@ class LearningOutcome {
     required this.description,
     required this.bloomsLevel,
     required this.understandingFirstPrinciple,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory LearningOutcome.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,8 @@ class LearningOutcome {
       bloomsLevel: json['blooms_level'] as String,
       understandingFirstPrinciple:
           json['understanding_first_principle'] as String,
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -45,6 +49,7 @@ class LearningOutcome {
         'description': description,
         'blooms_level': bloomsLevel,
         'understanding_first_principle': understandingFirstPrinciple,
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -54,6 +59,7 @@ class Concept {
   final String explanation;
   final List<String> visualCues;
   final List<LearningOutcome> learningOutcomes;
+  final String cbseAcademicYear;
 
   Concept({
     required this.id,
@@ -61,6 +67,7 @@ class Concept {
     required this.explanation,
     required this.visualCues,
     required this.learningOutcomes,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory Concept.fromJson(Map<String, dynamic> json) {
@@ -76,6 +83,8 @@ class Concept {
               ?.map((e) => LearningOutcome.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -85,6 +94,7 @@ class Concept {
         'explanation': explanation,
         'visual_cues': visualCues,
         'learning_outcomes': learningOutcomes.map((e) => e.toJson()).toList(),
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -96,6 +106,7 @@ class ExerciseItem {
   final String correctAnswer;
   final String? hint;
   final String? explanation;
+  final String cbseAcademicYear;
 
   ExerciseItem({
     required this.id,
@@ -105,6 +116,7 @@ class ExerciseItem {
     required this.correctAnswer,
     this.hint,
     this.explanation,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory ExerciseItem.fromJson(Map<String, dynamic> json) {
@@ -119,6 +131,8 @@ class ExerciseItem {
       correctAnswer: json['correct_answer'] as String,
       hint: json['hint'] as String?,
       explanation: json['explanation'] as String?,
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -130,6 +144,7 @@ class ExerciseItem {
         'correct_answer': correctAnswer,
         'hint': hint,
         'explanation': explanation,
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -137,11 +152,13 @@ class AssessmentItem {
   final String id;
   final ExerciseItem exercise;
   final double weightage;
+  final String cbseAcademicYear;
 
   AssessmentItem({
     required this.id,
     required this.exercise,
     this.weightage = 1.0,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory AssessmentItem.fromJson(Map<String, dynamic> json) {
@@ -150,6 +167,8 @@ class AssessmentItem {
       exercise:
           ExerciseItem.fromJson(json['exercise'] as Map<String, dynamic>),
       weightage: (json['weightage'] as num?)?.toDouble() ?? 1.0,
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -157,6 +176,7 @@ class AssessmentItem {
         'id': id,
         'exercise': exercise.toJson(),
         'weightage': weightage,
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -166,6 +186,7 @@ class Subtopic {
   final int sequenceOrder;
   final List<Concept> concepts;
   final List<ExerciseItem> exercises;
+  final String cbseAcademicYear;
 
   Subtopic({
     required this.id,
@@ -173,6 +194,7 @@ class Subtopic {
     required this.sequenceOrder,
     required this.concepts,
     required this.exercises,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory Subtopic.fromJson(Map<String, dynamic> json) {
@@ -188,6 +210,8 @@ class Subtopic {
               ?.map((e) => ExerciseItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -197,6 +221,7 @@ class Subtopic {
         'sequence_order': sequenceOrder,
         'concepts': concepts.map((e) => e.toJson()).toList(),
         'exercises': exercises.map((e) => e.toJson()).toList(),
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -205,12 +230,14 @@ class Topic {
   final String title;
   final int sequenceOrder;
   final List<Subtopic> subtopics;
+  final String cbseAcademicYear;
 
   Topic({
     required this.id,
     required this.title,
     required this.sequenceOrder,
     required this.subtopics,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory Topic.fromJson(Map<String, dynamic> json) {
@@ -222,6 +249,8 @@ class Topic {
               ?.map((e) => Subtopic.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -230,6 +259,7 @@ class Topic {
         'title': title,
         'sequence_order': sequenceOrder,
         'subtopics': subtopics.map((e) => e.toJson()).toList(),
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -242,6 +272,7 @@ class Subject {
   final String language;
   final int gradeLevel;
   final List<Topic> topics;
+  final String cbseAcademicYear;
 
   Subject({
     required this.id,
@@ -252,6 +283,7 @@ class Subject {
     required this.language,
     required this.gradeLevel,
     required this.topics,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory Subject.fromJson(Map<String, dynamic> json) {
@@ -267,6 +299,8 @@ class Subject {
               ?.map((e) => Topic.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -279,6 +313,7 @@ class Subject {
         'language': language,
         'grade_level': gradeLevel,
         'topics': topics.map((e) => e.toJson()).toList(),
+        'cbse_academic_year': cbseAcademicYear,
       };
 }
 
@@ -292,6 +327,7 @@ class LessonBlueprint {
   final List<Concept> concepts;
   final List<AssessmentItem> assessmentItems;
   final String curriculumVersion;
+  final String cbseAcademicYear;
 
   LessonBlueprint({
     required this.id,
@@ -303,6 +339,7 @@ class LessonBlueprint {
     required this.concepts,
     required this.assessmentItems,
     required this.curriculumVersion,
+    this.cbseAcademicYear = '2026-27',
   });
 
   factory LessonBlueprint.fromJson(Map<String, dynamic> json) {
@@ -322,6 +359,8 @@ class LessonBlueprint {
               .toList() ??
           [],
       curriculumVersion: json['curriculum_version'] as String? ?? '1.0.0',
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
     );
   }
 
@@ -335,5 +374,48 @@ class LessonBlueprint {
         'concepts': concepts.map((e) => e.toJson()).toList(),
         'assessment_items': assessmentItems.map((e) => e.toJson()).toList(),
         'curriculum_version': curriculumVersion,
+        'cbse_academic_year': cbseAcademicYear,
+      };
+}
+
+class CurriculumVersion {
+  final String version;
+  final String releaseDate;
+  final int gradeLevel;
+  final bool cbseCompliant;
+  final String cbseAcademicYear;
+  final List<String> supportedSubjects;
+
+  CurriculumVersion({
+    required this.version,
+    required this.releaseDate,
+    this.gradeLevel = 1,
+    this.cbseCompliant = true,
+    this.cbseAcademicYear = '2026-27',
+    required this.supportedSubjects,
+  });
+
+  factory CurriculumVersion.fromJson(Map<String, dynamic> json) {
+    return CurriculumVersion(
+      version: json['version'] as String,
+      releaseDate: json['release_date'] as String,
+      gradeLevel: json['grade_level'] as int? ?? 1,
+      cbseCompliant: json['cbse_compliant'] as bool? ?? true,
+      cbseAcademicYear:
+          json['cbse_academic_year'] as String? ?? '2026-27',
+      supportedSubjects: (json['supported_subjects'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'version': version,
+        'release_date': releaseDate,
+        'grade_level': gradeLevel,
+        'cbse_compliant': cbseCompliant,
+        'cbse_academic_year': cbseAcademicYear,
+        'supported_subjects': supportedSubjects,
       };
 }
