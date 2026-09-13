@@ -35,12 +35,12 @@ class AnalyticsService {
       },
     );
 
-    final response = await client.get(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-    );
-
     try {
+      final response = await client.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 2));
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return ExamPaper.fromJson(data);
@@ -71,7 +71,7 @@ class AnalyticsService {
           'subject': subject.name,
           'answers': answers,
         }),
-      );
+      ).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -100,7 +100,7 @@ class AnalyticsService {
       final response = await client.get(
         uri,
         headers: {'Content-Type': 'application/json'},
-      );
+      ).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
@@ -111,6 +111,26 @@ class AnalyticsService {
     }
 
     return _getMockParentDashboard(studentId, parentId);
+  }
+
+  /// Updates parental consent settings (DPDP / COPPA)
+  Future<DPDPParentConsent> updateParentConsent(DPDPParentConsent consent) async {
+    final uri = Uri.parse('$baseUrl/analytics/parent-consent');
+    try {
+      final response = await client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(consent.toJson()),
+      ).timeout(const Duration(seconds: 2));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return DPDPParentConsent.fromJson(data);
+      }
+    } catch (_) {
+      // Offline fallback
+    }
+    return consent;
   }
 
   ExamPaper _getMockExamPaper(String studentId, int gradeLevel, SubjectCategory subject) {
@@ -315,22 +335,5 @@ class AnalyticsService {
       ),
       dailyScreenTimeLimitMinutes: 45,
     );
-  }
-
-  /// Updates parental consent settings (DPDP / COPPA)
-  Future<DPDPParentConsent> updateParentConsent(DPDPParentConsent consent) async {
-    final uri = Uri.parse('$baseUrl/analytics/parent-consent');
-    final response = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(consent.toJson()),
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return DPDPParentConsent.fromJson(data);
-    } else {
-      throw Exception('Failed to update consent: ${response.statusCode}');
-    }
   }
 }

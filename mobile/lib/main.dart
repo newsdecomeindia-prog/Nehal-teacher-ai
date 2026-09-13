@@ -167,9 +167,6 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
   String _selectedLanguage = 'hi';
   bool _isLoading = false;
 
-  String? _connectionErrorMessage;
-  TeacherChatRequest? _lastFailedRequest;
-
   @override
   void initState() {
     super.initState();
@@ -211,7 +208,7 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Configure active FastAPI backend URL or IP address (e.g., Wi-Fi IP http://192.168.1.5:8000/api/v1, Android Emulator http://10.0.2.2:8000/api/v1, or Public Cloud Endpoint):',
+                'Configure optional FastAPI backend URL (e.g. Wi-Fi IP http://192.168.1.5:8000/api/v1). App runs 100% standalone offline when server is unreachable:',
                 style: TextStyle(fontSize: 13, color: Colors.black87),
               ),
               const SizedBox(height: 12),
@@ -250,9 +247,6 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             onPressed: () {
               AppConfig.resetBaseUrl();
               Navigator.pop(ctx);
-              setState(() {
-                _connectionErrorMessage = null;
-              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Reset backend URL to default: ${AppConfig.baseUrl}')),
               );
@@ -267,15 +261,9 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             onPressed: () {
               AppConfig.setCustomBaseUrl(serverController.text);
               Navigator.pop(ctx);
-              setState(() {
-                _connectionErrorMessage = null;
-              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Updated backend URL to: ${AppConfig.baseUrl}')),
               );
-              if (_lastFailedRequest != null) {
-                _sendMessage(requestOverride: _lastFailedRequest);
-              }
             },
             child: const Text('Save & Connect'),
           ),
@@ -287,7 +275,6 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
   Future<void> _sendMessage({
     String? customMessage,
     bool isConfused = false,
-    bool forceOfflineFallback = false,
     TeacherChatRequest? requestOverride,
   }) async {
     final text = customMessage ?? _textController.text.trim();
@@ -321,32 +308,10 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
           isConfused: isConfused,
         );
 
-    if (forceOfflineFallback) {
-      final offlineResponse = _teacherService.generateOfflineFallbackResponse(request);
-      setState(() {
-        _isLoading = false;
-        _connectionErrorMessage = null;
-        _messages.add(
-          TeacherChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            sender: 'teacher',
-            messageText: offlineResponse.responseText,
-            timestamp: DateTime.now(),
-            isFallbackExplanation: offlineResponse.isFallbackExplanation,
-            visualCueTrigger: offlineResponse.visualCueTrigger,
-            richCard: offlineResponse.richCard,
-          ),
-        );
-      });
-      return;
-    }
-
     try {
       final response = await _teacherService.sendChatMessage(request);
       setState(() {
         _isLoading = false;
-        _connectionErrorMessage = null;
-        _lastFailedRequest = null;
         _messages.add(
           TeacherChatMessage(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -360,11 +325,20 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
         );
       });
     } catch (e) {
+      final offlineResponse = _teacherService.generateOfflineFallbackResponse(request);
       setState(() {
         _isLoading = false;
-        _lastFailedRequest = request;
-        _connectionErrorMessage =
-            'Connection Timed Out / Refused (${AppConfig.baseUrl}). Unable to reach Suman AI Teacher server.';
+        _messages.add(
+          TeacherChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            sender: 'teacher',
+            messageText: offlineResponse.responseText,
+            timestamp: DateTime.now(),
+            isFallbackExplanation: offlineResponse.isFallbackExplanation,
+            visualCueTrigger: offlineResponse.visualCueTrigger,
+            richCard: offlineResponse.richCard,
+          ),
+        );
       });
     }
   }
@@ -383,7 +357,7 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Color(0xFF6750A4)),
-            tooltip: 'Configure Backend IP / URL',
+            tooltip: 'Configure Optional Backend Server',
             onPressed: _openServerConfigDialog,
           ),
           DropdownButton<String>(
@@ -413,7 +387,7 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: SumanAvatarHeader(
-                isOnline: _connectionErrorMessage == null,
+                isOnline: true,
                 greetingText: _selectedLanguage == 'hi'
                     ? 'नमस्ते नेहल! आज क्या सीखोगे?'
                     : _selectedLanguage == 'mr'
@@ -421,95 +395,6 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                         : 'Hello Nehal! What will you learn today?',
               ),
             ),
-            if (_connectionErrorMessage != null)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFD32F2F), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.wifi_off_rounded, color: Color(0xFFD32F2F), size: 22),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Backend Connection Error',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFB71C1C),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _connectionErrorMessage!,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFC62828), height: 1.3),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFD32F2F),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          ),
-                          icon: const Icon(Icons.refresh, size: 16),
-                          label: const Text('Retry', style: TextStyle(fontSize: 12)),
-                          onPressed: () {
-                            if (_lastFailedRequest != null) {
-                              _sendMessage(requestOverride: _lastFailedRequest);
-                            }
-                          },
-                        ),
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF6750A4),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          ),
-                          icon: const Icon(Icons.settings_ethernet, size: 16),
-                          label: const Text('Server Settings', style: TextStyle(fontSize: 12)),
-                          onPressed: _openServerConfigDialog,
-                        ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.grey.shade800,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          ),
-                          icon: const Icon(Icons.offline_bolt, size: 16),
-                          label: const Text('Offline Mode', style: TextStyle(fontSize: 12)),
-                          onPressed: () {
-                            if (_lastFailedRequest != null) {
-                              _sendMessage(
-                                requestOverride: _lastFailedRequest,
-                                forceOfflineFallback: true,
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -530,7 +415,6 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                           ),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            // Comic speech bubble visual styling (REQ-34): Soft blue for student, bright purple/amber for Suman AI
                             color: isTeacher
                                 ? (msg.isFallbackExplanation ? const Color(0xFFFFF3E0) : const Color(0xFFF3EDF7))
                                 : const Color(0xFFE3F2FD),
