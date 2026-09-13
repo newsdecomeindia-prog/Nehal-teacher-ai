@@ -24,14 +24,14 @@ class TeacherService {
       final response = await client.get(
         uri,
         headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return TeacherPersonaConfig.fromJson(
             jsonDecode(response.body) as Map<String, dynamic>);
       }
     } catch (_) {
-      // Return default persona config on network timeout
+      // Return default persona config on network timeout or offline
     }
 
     return TeacherPersonaConfig(
@@ -55,7 +55,7 @@ class TeacherService {
             },
             body: jsonEncode(request.toJson()),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return TeacherChatResponse.fromJson(
@@ -75,6 +75,7 @@ class TeacherService {
     // 1. Confused / Clarification handling
     if (request.isConfused ||
         msgLower.contains('understand') ||
+        msgLower.contains('confused') ||
         msgLower.contains('समझा नहीं') ||
         msgLower.contains('समजले नाही') ||
         msgLower.contains('कळले नाही')) {
@@ -98,6 +99,7 @@ class TeacherService {
     if (msgLower.contains('hello') ||
         msgLower.contains('hi') ||
         msgLower.contains('namaste') ||
+        msgLower.contains('hey') ||
         msgLower.contains('नमस्ते') ||
         msgLower.contains('नमस्कार') ||
         msgLower.contains('good morning') ||
@@ -118,11 +120,13 @@ class TeacherService {
       );
     }
 
-    // 3. PM Modi / Prime Minister query
+    // 3. PM Modi / Prime Minister / Leader queries
     if (msgLower.contains('modi') ||
         msgLower.contains('प्रधानमंत्री') ||
+        msgLower.contains('पंतप्रधान') ||
         msgLower.contains('prime minister') ||
-        msgLower.contains('narendra')) {
+        msgLower.contains('narendra') ||
+        msgLower.contains('pm')) {
       final richCard = RichVisualCardData(
         entityName: 'Narendra Modi',
         imageUrl: 'https://assets.nehalai.com/images/pm_modi.jpg',
@@ -158,12 +162,14 @@ class TeacherService {
 
     // 4. Stories / Kahani / Goshta queries
     if (msgLower.contains('story') ||
+        msgLower.contains('stories') ||
         msgLower.contains('kahani') ||
         msgLower.contains('goshta') ||
         msgLower.contains('कहानी') ||
         msgLower.contains('गोष्ट') ||
         msgLower.contains('moral') ||
-        msgLower.contains('crow')) {
+        msgLower.contains('crow') ||
+        msgLower.contains('lion')) {
       return TeacherChatResponse(
         responseText: lang == 'hi'
             ? 'यहाँ एक सुंदर कहानी है: "शेर और चूहा" (The Lion and the Mouse) 🦁🐭\n\nएक दिन एक छोटे चूहे ने शेर का जाल कुतर कर उसकी जान बचाई।\nसीख: हर छोटी मदद भी बहुत मूल्यवान होती है!\n\nप्रश्न: कहानी में शेर की मदद किसने की?'
@@ -180,12 +186,44 @@ class TeacherService {
       );
     }
 
-    // 5. General Knowledge (Animals, Fruits, Capital, India)
+    // 5. Math / Addition / Counting queries
+    if (msgLower.contains('math') ||
+        msgLower.contains('add') ||
+        msgLower.contains('plus') ||
+        msgLower.contains('count') ||
+        msgLower.contains('counting') ||
+        msgLower.contains('number') ||
+        msgLower.contains('2+2') ||
+        msgLower.contains('3+5') ||
+        msgLower.contains('गणित') ||
+        msgLower.contains('जोड़') ||
+        msgLower.contains('गिनती') ||
+        msgLower.contains('संख्या') ||
+        msgLower.contains('बेरीज')) {
+      return TeacherChatResponse(
+        responseText: lang == 'hi'
+            ? 'गणित बहुत आसान और मजेदार है! चलिए जोड़ते हैं: 3 + 5 = 8। [Visual Cue: 8 सेब 🍎🍎🍎🍎🍎🍎🍎🍎]\n\nक्या आप बता सकते हैं कि 2 + 2 कितना होता है?'
+            : lang == 'mr'
+                ? 'गणित खूप सोपे आणि मजेशीर आहे! चला बेरीज करूया: 3 + 5 = 8. [Visual Cue: 8 सफरचंद 🍎]\n\nमला सांगा, 2 + 2 किती होतात?'
+                : 'Math is fun and easy! Let us count together: 3 + 5 = 8! [Visual Cue: Eight red apples 🍎🍎🍎🍎🍎🍎🍎🍎]\n\nCan you tell me what is 2 + 2?',
+        language: lang,
+        interactionMode: 'standard',
+        isFallbackExplanation: false,
+        visualCueTrigger: 'Eight Red Apples 🍎🍎🍎🍎🍎🍎🍎🍎',
+        groundedConceptId: request.conceptId,
+        safetyFiltered: false,
+        encouragementPhrase: 'Math Genius!',
+      );
+    }
+
+    // 6. Animals / Fruits / General Knowledge
     if (msgLower.contains('animal') ||
         msgLower.contains('peacock') ||
+        msgLower.contains('bird') ||
         msgLower.contains('जानवर') ||
         msgLower.contains('मोर') ||
-        msgLower.contains('प्राणी')) {
+        msgLower.contains('प्राणी') ||
+        msgLower.contains('पक्षी')) {
       final richCard = RichVisualCardData(
         entityName: 'Peacock',
         imageUrl: 'https://assets.nehalai.com/images/peacock.jpg',
@@ -254,35 +292,6 @@ class TeacherService {
         groundedConceptId: request.conceptId,
         safetyFiltered: false,
         encouragementPhrase: 'Yummy choice!',
-      );
-    }
-
-    // 6. Math / Addition / Counting queries
-    if (msgLower.contains('math') ||
-        msgLower.contains('add') ||
-        msgLower.contains('plus') ||
-        msgLower.contains('count') ||
-        msgLower.contains('number') ||
-        msgLower.contains('2+2') ||
-        msgLower.contains('3+5') ||
-        msgLower.contains('गणित') ||
-        msgLower.contains('जोड़') ||
-        msgLower.contains('गिनती') ||
-        msgLower.contains('संख्या') ||
-        msgLower.contains('बेरीज')) {
-      return TeacherChatResponse(
-        responseText: lang == 'hi'
-            ? 'गणित बहुत आसान और मजेदार है! चलिए जोड़ते हैं: 3 + 5 = 8। [Visual Cue: 8 सेब 🍎🍎🍎🍎🍎🍎🍎🍎]\n\nक्या आप बता सकते हैं कि 2 + 2 कितना होता है?'
-            : lang == 'mr'
-                ? 'गणित खूप सोपे आणि मजेशीर आहे! चला बेरीज करूया: 3 + 5 = 8. [Visual Cue: 8 सफरचंद 🍎]\n\nमला सांगा, 2 + 2 किती होतात?'
-                : 'Math is fun and easy! Let us count together: 3 + 5 = 8! [Visual Cue: Eight red apples 🍎🍎🍎🍎🍎🍎🍎🍎]\n\nCan you tell me what is 2 + 2?',
-        language: lang,
-        interactionMode: 'standard',
-        isFallbackExplanation: false,
-        visualCueTrigger: 'Eight Red Apples 🍎🍎🍎🍎🍎🍎🍎🍎',
-        groundedConceptId: request.conceptId,
-        safetyFiltered: false,
-        encouragementPhrase: 'Math Genius!',
       );
     }
 

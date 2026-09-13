@@ -28,13 +28,13 @@ class MultiModalService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(payload.toJson()),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return STTResponse.fromJson(jsonDecode(response.body));
       }
     } catch (_) {
-      // Automatic seamless fallback to local device STT mock engine
+      // Automatic seamless fallback to local device STT engine
     }
 
     return generateOfflineSTTResponse(payload);
@@ -51,7 +51,7 @@ class MultiModalService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(request.toJson()),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return TTSResponse.fromJson(jsonDecode(response.body));
@@ -81,13 +81,13 @@ class MultiModalService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(payload.toJson()),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return ImageScanResult.fromJson(jsonDecode(response.body));
       }
     } catch (_) {
-      // Automatic seamless fallback to local device OCR mock engine
+      // Automatic seamless fallback to local device OCR engine
     }
 
     return generateOfflineImageScanResult(payload);

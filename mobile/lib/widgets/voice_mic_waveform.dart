@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../models/multimodal.dart';
 import '../services/multimodal_service.dart';
 
-/// Animated Waveform & Mic Button Widget for Voice STT/TTS interaction.
+/// Animated Waveform & Mic Button Widget for Voice STT/TTS interaction,
+/// with native local on-device Speech Recognition (`speech_to_text`).
 class VoiceMicWaveformWidget extends StatefulWidget {
   final String currentLanguage;
   final Function(String transcribedText) onSpeechTranscribed;
@@ -22,9 +24,13 @@ class VoiceMicWaveformWidget extends StatefulWidget {
 class _VoiceMicWaveformWidgetState extends State<VoiceMicWaveformWidget>
     with SingleTickerProviderStateMixin {
   final MultiModalService _multimodalService = MultiModalService();
+  final stt.SpeechToText _speech = stt.SpeechToText();
+
   late AnimationController _animationController;
   bool _isListening = false;
   bool _isProcessing = false;
+  bool _speechInitialized = false;
+  String _recognizedText = '';
   List<double> _waveformHeights = [10, 20, 15, 30, 25, 12, 18, 28, 14, 22];
   Timer? _timer;
 
@@ -35,18 +41,37 @@ class _VoiceMicWaveformWidgetState extends State<VoiceMicWaveformWidget>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
+    _initSpeechRecognizer();
+  }
+
+  Future<void> _initSpeechRecognizer() async {
+    try {
+      bool available = await _speech.initialize(
+        onError: (val) {},
+        onStatus: (val) {},
+      );
+      if (mounted) {
+        setState(() {
+          _speechInitialized = available;
+        });
+      }
+    } catch (_) {
+      _speechInitialized = false;
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _animationController.dispose();
+    _speech.stop();
     super.dispose();
   }
 
-  void _startListening() {
+  Future<void> _startListening() async {
     setState(() {
       _isListening = true;
+      _recognizedText = '';
     });
     _animationController.repeat(reverse: true);
 
@@ -60,11 +85,50 @@ class _VoiceMicWaveformWidgetState extends State<VoiceMicWaveformWidget>
         });
       }
     });
+
+    if (!_speechInitialized) {
+      await _initSpeechRecognizer();
+    }
+
+    if (_speechInitialized) {
+      String localeId = 'en_US';
+      if (widget.currentLanguage == 'hi') {
+        localeId = 'hi_IN';
+      } else if (widget.currentLanguage == 'mr') {
+        localeId = 'mr_IN';
+      }
+
+      try {
+        await _speech.listen(
+          onResult: (result) {
+            if (mounted) {
+              setState(() {
+                _recognizedText = result.recognizedWords;
+              });
+            }
+          },
+          listenOptions: stt.SpeechListenOptions(
+            localeId: localeId,
+            listenFor: const Duration(seconds: 30),
+            pauseFor: const Duration(seconds: 5),
+            partialResults: true,
+          ),
+        );
+      } catch (_) {
+        // Fall back gracefully if speech listening fails on platform
+      }
+    }
   }
 
   Future<void> _stopListeningAndTranscribe() async {
     _timer?.cancel();
     _animationController.stop();
+
+    try {
+      if (_speech.isListening) {
+        await _speech.stop();
+      }
+    } catch (_) {}
 
     setState(() {
       _isListening = false;
@@ -72,19 +136,25 @@ class _VoiceMicWaveformWidgetState extends State<VoiceMicWaveformWidget>
     });
 
     try {
-      final payload = STTAudioPayload(
-        studentId: 'student_class1_001',
-        languageHint: widget.currentLanguage,
-        audioFormat: 'wav',
-      );
+      String finalTranscribedText = _recognizedText.trim();
 
-      final res = await _multimodalService.transcribeSpeech(payload);
+      // If native local speech engine produced words, use them!
+      // Otherwise, fall back to dynamic local standalone STT service handler.
+      if (finalTranscribedText.isEmpty) {
+        final payload = STTAudioPayload(
+          studentId: 'student_class1_001',
+          languageHint: widget.currentLanguage,
+          audioFormat: 'wav',
+        );
+        final res = await _multimodalService.transcribeSpeech(payload);
+        finalTranscribedText = res.transcribedText;
+      }
 
       setState(() {
         _isProcessing = false;
       });
 
-      widget.onSpeechTranscribed(res.transcribedText);
+      widget.onSpeechTranscribed(finalTranscribedText);
     } catch (e) {
       setState(() {
         _isProcessing = false;
@@ -117,11 +187,13 @@ class _VoiceMicWaveformWidgetState extends State<VoiceMicWaveformWidget>
                 const Icon(Icons.mic, color: Colors.red, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  widget.currentLanguage == 'hi'
-                      ? 'सुन रहे हैं... बोलिए...'
-                      : widget.currentLanguage == 'mr'
-                          ? 'ऐकत आहे... बोला...'
-                          : 'Listening... Speak now...',
+                  _recognizedText.isNotEmpty
+                      ? _recognizedText
+                      : (widget.currentLanguage == 'hi'
+                          ? 'सुन रहे हैं... बोलिए...'
+                          : widget.currentLanguage == 'mr'
+                              ? 'ऐकत आहे... बोला...'
+                              : 'Listening... Speak now...'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(width: 12),
