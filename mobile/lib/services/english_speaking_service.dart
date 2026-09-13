@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 import '../models/english_speaking.dart';
 
 /// Service class for Mobile client communicating with English Small-Sentence Speaking Engine API.
@@ -8,9 +9,10 @@ class EnglishSpeakingService {
   final http.Client client;
 
   EnglishSpeakingService({
-    this.baseUrl = 'http://localhost:8000/api/v1',
+    String? baseUrl,
     http.Client? client,
-  }) : client = client ?? http.Client();
+  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+        client = client ?? http.Client();
 
   /// Fetch list of English speaking prompts optionally filtered by difficulty tier.
   Future<List<SpeakingPrompt>> fetchPrompts({String? tier}) async {

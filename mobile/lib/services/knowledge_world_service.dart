@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 import '../models/knowledge_world.dart';
 
 class KnowledgeWorldMobileService {
@@ -7,9 +8,10 @@ class KnowledgeWorldMobileService {
   final http.Client _client;
 
   KnowledgeWorldMobileService({
-    this.baseUrl = 'http://localhost:8000/api/v1',
+    String? baseUrl,
     http.Client? client,
-  }) : _client = client ?? http.Client();
+  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+        _client = client ?? http.Client();
 
   /// Fetch all available learning worlds
   Future<List<WorldTheme>> fetchWorlds() async {

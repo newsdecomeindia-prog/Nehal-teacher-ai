@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nehal_teacher_ai_mobile/config/app_config.dart';
 import 'package:nehal_teacher_ai_mobile/models/teacher.dart';
 import 'package:nehal_teacher_ai_mobile/services/teacher_service.dart';
 import 'package:nehal_teacher_ai_mobile/models/knowledge_world.dart';
@@ -187,6 +188,69 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
     );
   }
 
+  void _openServerConfigDialog() {
+    final serverController = TextEditingController(text: AppConfig.baseUrl);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.settings_ethernet, color: Color(0xFF6750A4)),
+            SizedBox(width: 8),
+            Text('Backend Server Config', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Set the FastAPI backend URL or IP address (e.g. Wi-Fi IP http://192.168.1.5:8000/api/v1 or Android Emulator http://10.0.2.2:8000/api/v1):',
+              style: TextStyle(fontSize: 13, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: serverController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Backend URL',
+                prefixIcon: Icon(Icons.link),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              AppConfig.resetBaseUrl();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Reset backend URL to default: ${AppConfig.baseUrl}')),
+              );
+            },
+            child: const Text('Reset Default'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6750A4),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              AppConfig.setCustomBaseUrl(serverController.text);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Updated backend URL to: ${AppConfig.baseUrl}')),
+              );
+            },
+            child: const Text('Save & Connect'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _sendMessage({String? customMessage, bool isConfused = false}) async {
     final text = customMessage ?? _textController.text.trim();
     if (text.isEmpty && !isConfused) return;
@@ -243,6 +307,11 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF21005D)),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Color(0xFF6750A4)),
+            tooltip: 'Configure Backend IP / URL',
+            onPressed: _openServerConfigDialog,
+          ),
           DropdownButton<String>(
             value: _selectedLanguage,
             underline: const SizedBox(),
@@ -297,25 +366,28 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                           ),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
+                            // Comic speech bubble visual styling (REQ-34): Soft blue for student, bright purple/amber for Suman AI
                             color: isTeacher
                                 ? (msg.isFallbackExplanation ? const Color(0xFFFFF3E0) : const Color(0xFFF3EDF7))
                                 : const Color(0xFFE3F2FD),
                             borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(20),
-                              topRight: const Radius.circular(20),
-                              bottomLeft: isTeacher ? const Radius.circular(4) : const Radius.circular(20),
-                              bottomRight: isTeacher ? const Radius.circular(20) : const Radius.circular(4),
+                              topLeft: const Radius.circular(22),
+                              topRight: const Radius.circular(22),
+                              bottomLeft: isTeacher ? const Radius.circular(4) : const Radius.circular(22),
+                              bottomRight: isTeacher ? const Radius.circular(22) : const Radius.circular(4),
                             ),
                             border: Border.all(
                               color: isTeacher
-                                  ? (msg.isFallbackExplanation ? Colors.orange.shade300 : const Color(0xFFD0BCFF))
-                                  : const Color(0xFF90CAF9),
-                              width: 1.5,
+                                  ? (msg.isFallbackExplanation ? Colors.orange.shade400 : const Color(0xFF6750A4))
+                                  : const Color(0xFF42A5F5),
+                              width: 2.0,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 6,
+                                color: isTeacher
+                                    ? const Color(0xFF6750A4).withValues(alpha: 0.1)
+                                    : Colors.blue.withValues(alpha: 0.1),
+                                blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
                             ],
@@ -324,21 +396,37 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (isTeacher) ...[
-                                const Row(
+                                Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text('👩‍🏫 Suman AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF6750A4))),
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF6750A4),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Text('👩‍🏫', style: TextStyle(fontSize: 12)),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'Suman AI Teacher 3D',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Color(0xFF21005D),
+                                      ),
+                                    ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                               ],
                               Text(
                                 msg.messageText,
                                 style: TextStyle(
                                   fontSize: 15,
-                                  height: 1.35,
-                                  color: isTeacher ? Colors.black87 : const Color(0xFF0D47A1),
-                                  fontWeight: isTeacher ? FontWeight.normal : FontWeight.w600,
+                                  height: 1.38,
+                                  color: isTeacher ? const Color(0xFF1D1B20) : const Color(0xFF0D47A1),
+                                  fontWeight: isTeacher ? FontWeight.w500 : FontWeight.w600,
                                 ),
                               ),
                             ],

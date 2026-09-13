@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 import '../models/analytics.dart';
 
 class AnalyticsService {
@@ -9,9 +10,10 @@ class AnalyticsService {
   final http.Client client;
 
   AnalyticsService({
-    this.baseUrl = 'http://10.0.2.2:8000/api/v1',
+    String? baseUrl,
     http.Client? client,
-  }) : client = client ?? http.Client();
+  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+        client = client ?? http.Client();
 
   /// Fetches diagnostic or formative exam paper for student
   Future<ExamPaper> generateExam({
