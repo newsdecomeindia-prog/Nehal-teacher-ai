@@ -96,7 +96,7 @@ class MockImageService(BaseImageService):
 
         if "math" in subject:
             ocr_raw = (
-                "Student Name: Nehal Kumar\n1) 5 + 3 = 8\n2) 10 - 4 = 6\n3) Count the apples: 7"
+                "Student Name: Nehal Kumar\n1) 5 + 3 = ?\n2) 10 - 4 = ?\n3) Count the apples: 7"
             )
             homework_type = "math_worksheet"
             regions = [
@@ -107,20 +107,20 @@ class MockImageService(BaseImageService):
                     line_number=1,
                 ),
                 OCRTextRegion(
-                    text="1) 5 + 3 = 8",
+                    text="1) 5 + 3 = ?",
                     confidence=0.99,
                     bounding_box=BoundingBox(x_min=0.1, y_min=0.2, x_max=0.6, y_max=0.3),
                     line_number=2,
                 ),
                 OCRTextRegion(
-                    text="2) 10 - 4 = 6",
+                    text="2) 10 - 4 = ?",
                     confidence=0.97,
                     bounding_box=BoundingBox(x_min=0.1, y_min=0.35, x_max=0.6, y_max=0.45),
                     line_number=3,
                 ),
             ]
         elif "english" in subject:
-            ocr_raw = "Fill in the blanks with vowels:\nC _ T -> CAT\nD _ G -> DOG"
+            ocr_raw = "Fill in the blanks with vowels:\nC _ T -> ?\nD _ G -> ?"
             homework_type = "english_worksheet"
             regions = [
                 OCRTextRegion(
@@ -130,7 +130,7 @@ class MockImageService(BaseImageService):
                     line_number=1,
                 ),
                 OCRTextRegion(
-                    text="C _ T -> CAT",
+                    text="C _ T -> ?",
                     confidence=0.96,
                     bounding_box=BoundingBox(x_min=0.1, y_min=0.2, x_max=0.7, y_max=0.32),
                     line_number=2,

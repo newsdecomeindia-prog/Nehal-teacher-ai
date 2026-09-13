@@ -85,7 +85,7 @@ def test_image_scan_educational_math():
     assert data["is_educational"] is True
     assert data["safety_status"] == ChildSafetyScanStatus.SAFE.value
     assert data["homework_type"] == "math_worksheet"
-    assert "5 + 3 = 8" in data["detected_text"]
+    assert "5 + 3 = ?" in data["detected_text"]
     assert len(data["text_regions"]) > 0
     assert data["pii_redacted"] is True
 

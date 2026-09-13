@@ -10,6 +10,8 @@ import 'package:nehal_teacher_ai_mobile/services/analytics_service.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/error_boundary.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/suman_avatar_header.dart';
 import 'package:nehal_teacher_ai_mobile/widgets/rich_visual_card.dart';
+import 'package:nehal_teacher_ai_mobile/widgets/homework_camera_widget.dart';
+import 'package:nehal_teacher_ai_mobile/widgets/voice_mic_waveform.dart';
 
 void main() {
   runApp(const NehalTeacherApp());
@@ -357,6 +359,22 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.camera_alt, color: Color(0xFF6750A4)),
+                        tooltip: 'Homework Camera Scan',
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => HomeworkCameraModal(
+                              onHomeworkScanned: (scannedText, scanResult) {
+                                _sendMessage(customMessage: scannedText);
+                              },
+                            ),
+                          );
+                        },
+                      ),
                       Expanded(
                         child: TextField(
                           controller: _textController,
@@ -369,7 +387,14 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
+                      VoiceMicWaveformWidget(
+                        currentLanguage: _selectedLanguage,
+                        onSpeechTranscribed: (transcribedText) {
+                          _sendMessage(customMessage: transcribedText);
+                        },
+                      ),
+                      const SizedBox(width: 4),
                       IconButton.filled(
                         icon: const Icon(Icons.send),
                         onPressed: () => _sendMessage(),
