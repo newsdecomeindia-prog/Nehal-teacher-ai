@@ -1,10 +1,12 @@
+import '../config/app_config.dart';
 import '../models/teacher.dart';
 import '../widgets/rich_visual_card.dart';
 
 class TeacherService {
   final String baseUrl;
 
-  TeacherService({this.baseUrl = 'http://localhost:8000/api/v1'});
+  TeacherService({String? baseUrl})
+      : baseUrl = baseUrl ?? AppConfig.baseUrl;
 
   Future<TeacherPersonaConfig> getTeacherPersona({String language = 'en'}) async {
     return TeacherPersonaConfig(

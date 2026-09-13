@@ -1,9 +1,11 @@
+import '../config/app_config.dart';
 import '../models/curriculum.dart';
 
 class CurriculumClientService {
   final String baseUrl;
 
-  CurriculumClientService({this.baseUrl = 'http://localhost:8000/api/v1/curriculum/class-1'});
+  CurriculumClientService({String? baseUrl})
+      : baseUrl = baseUrl ?? '${AppConfig.baseUrl}/curriculum/class-1';
 
   Future<List<Subject>> fetchClass1Subjects() async {
     // Client-side service layer with fallback mock for Class 1 subjects

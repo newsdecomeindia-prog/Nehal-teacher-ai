@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 import '../models/multimodal.dart';
 
 /// Client service handling multi-modal API interactions for STT, TTS, and Image Scanning.
@@ -8,9 +9,10 @@ class MultiModalService {
   final http.Client client;
 
   MultiModalService({
-    this.baseUrl = 'http://localhost:8000/api/v1',
+    String? baseUrl,
     http.Client? client,
-  }) : client = client ?? http.Client();
+  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+        client = client ?? http.Client();
 
   /// Transcribe child audio input to text via STT API endpoint.
   Future<STTResponse> transcribeSpeech(STTAudioPayload payload) async {
