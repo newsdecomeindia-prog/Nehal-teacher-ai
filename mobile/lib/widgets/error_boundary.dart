@@ -24,25 +24,25 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   }
 
   static Widget _defaultErrorBuilder(Object error, StackTrace? stackTrace) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 color: Colors.orange,
                 size: 60,
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 'Something went wrong',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Please restart the application or try again later.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),

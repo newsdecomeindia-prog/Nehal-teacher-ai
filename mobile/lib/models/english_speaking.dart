@@ -1,4 +1,5 @@
 /// English Speaking Models for Class 1 Speaking Practice & Soft Assessment
+library;
 
 enum DifficultyTier {
   level_1, // 2-3 word phrases

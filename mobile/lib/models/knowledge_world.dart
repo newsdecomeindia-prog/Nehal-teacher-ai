@@ -1,4 +1,5 @@
 /// Knowledge World Flutter Models for Gamified Quests & Story Progression
+library;
 
 class ChoiceOption {
   final String choiceId;
