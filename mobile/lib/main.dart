@@ -167,6 +167,9 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
   String _selectedLanguage = 'hi';
   bool _isLoading = false;
 
+  String? _connectionErrorMessage;
+  TeacherChatRequest? _lastFailedRequest;
+
   @override
   void initState() {
     super.initState();
@@ -202,30 +205,54 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             Text('Backend Server Config', style: TextStyle(fontSize: 18)),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Set the FastAPI backend URL or IP address (e.g. Wi-Fi IP http://192.168.1.5:8000/api/v1 or Android Emulator http://10.0.2.2:8000/api/v1):',
-              style: TextStyle(fontSize: 13, color: Colors.black87),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: serverController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Backend URL',
-                prefixIcon: Icon(Icons.link),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Configure active FastAPI backend URL or IP address (e.g., Wi-Fi IP http://192.168.1.5:8000/api/v1, Android Emulator http://10.0.2.2:8000/api/v1, or Public Cloud Endpoint):',
+                style: TextStyle(fontSize: 13, color: Colors.black87),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: serverController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Backend API URL',
+                  prefixIcon: Icon(Icons.link),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ActionChip(
+                    label: const Text('Emulator (10.0.2.2)'),
+                    onPressed: () {
+                      serverController.text = 'http://10.0.2.2:8000/api/v1';
+                    },
+                  ),
+                  ActionChip(
+                    label: const Text('Localhost (8000)'),
+                    onPressed: () {
+                      serverController.text = 'http://localhost:8000/api/v1';
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () {
               AppConfig.resetBaseUrl();
               Navigator.pop(ctx);
+              setState(() {
+                _connectionErrorMessage = null;
+              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Reset backend URL to default: ${AppConfig.baseUrl}')),
               );
@@ -240,9 +267,15 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             onPressed: () {
               AppConfig.setCustomBaseUrl(serverController.text);
               Navigator.pop(ctx);
+              setState(() {
+                _connectionErrorMessage = null;
+              });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Updated backend URL to: ${AppConfig.baseUrl}')),
               );
+              if (_lastFailedRequest != null) {
+                _sendMessage(requestOverride: _lastFailedRequest);
+              }
             },
             child: const Text('Save & Connect'),
           ),
@@ -251,48 +284,89 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
     );
   }
 
-  Future<void> _sendMessage({String? customMessage, bool isConfused = false}) async {
+  Future<void> _sendMessage({
+    String? customMessage,
+    bool isConfused = false,
+    bool forceOfflineFallback = false,
+    TeacherChatRequest? requestOverride,
+  }) async {
     final text = customMessage ?? _textController.text.trim();
-    if (text.isEmpty && !isConfused) return;
+    if (text.isEmpty && !isConfused && requestOverride == null) return;
 
-    final userMessageText = isConfused ? 'I do not understand this concept.' : text;
+    final userMessageText = requestOverride?.message ?? (isConfused ? 'I do not understand this concept.' : text);
+
+    if (requestOverride == null) {
+      setState(() {
+        _messages.add(
+          TeacherChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            sender: 'student',
+            messageText: userMessageText,
+            timestamp: DateTime.now(),
+          ),
+        );
+        if (customMessage == null && !isConfused) _textController.clear();
+      });
+    }
 
     setState(() {
-      _messages.add(
-        TeacherChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          sender: 'student',
-          messageText: userMessageText,
-          timestamp: DateTime.now(),
-        ),
-      );
-      if (customMessage == null && !isConfused) _textController.clear();
       _isLoading = true;
     });
 
-    final request = TeacherChatRequest(
-      studentId: 'student_class1_001',
-      message: userMessageText,
-      language: _selectedLanguage,
-      isConfused: isConfused,
-    );
+    final request = requestOverride ??
+        TeacherChatRequest(
+          studentId: 'student_class1_001',
+          message: userMessageText,
+          language: _selectedLanguage,
+          isConfused: isConfused,
+        );
 
-    final response = await _teacherService.sendChatMessage(request);
+    if (forceOfflineFallback) {
+      final offlineResponse = _teacherService.generateOfflineFallbackResponse(request);
+      setState(() {
+        _isLoading = false;
+        _connectionErrorMessage = null;
+        _messages.add(
+          TeacherChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            sender: 'teacher',
+            messageText: offlineResponse.responseText,
+            timestamp: DateTime.now(),
+            isFallbackExplanation: offlineResponse.isFallbackExplanation,
+            visualCueTrigger: offlineResponse.visualCueTrigger,
+            richCard: offlineResponse.richCard,
+          ),
+        );
+      });
+      return;
+    }
 
-    setState(() {
-      _isLoading = false;
-      _messages.add(
-        TeacherChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          sender: 'teacher',
-          messageText: response.responseText,
-          timestamp: DateTime.now(),
-          isFallbackExplanation: response.isFallbackExplanation,
-          visualCueTrigger: response.visualCueTrigger,
-          richCard: response.richCard,
-        ),
-      );
-    });
+    try {
+      final response = await _teacherService.sendChatMessage(request);
+      setState(() {
+        _isLoading = false;
+        _connectionErrorMessage = null;
+        _lastFailedRequest = null;
+        _messages.add(
+          TeacherChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            sender: 'teacher',
+            messageText: response.responseText,
+            timestamp: DateTime.now(),
+            isFallbackExplanation: response.isFallbackExplanation,
+            visualCueTrigger: response.visualCueTrigger,
+            richCard: response.richCard,
+          ),
+        );
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _lastFailedRequest = request;
+        _connectionErrorMessage =
+            'Connection Timed Out / Refused (${AppConfig.baseUrl}). Unable to reach Suman AI Teacher server.';
+      });
+    }
   }
 
   @override
@@ -339,6 +413,7 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: SumanAvatarHeader(
+                isOnline: _connectionErrorMessage == null,
                 greetingText: _selectedLanguage == 'hi'
                     ? 'नमस्ते नेहल! आज क्या सीखोगे?'
                     : _selectedLanguage == 'mr'
@@ -346,6 +421,95 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                         : 'Hello Nehal! What will you learn today?',
               ),
             ),
+            if (_connectionErrorMessage != null)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFD32F2F), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.wifi_off_rounded, color: Color(0xFFD32F2F), size: 22),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Backend Connection Error',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFB71C1C),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _connectionErrorMessage!,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFC62828), height: 1.3),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD32F2F),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                          icon: const Icon(Icons.refresh, size: 16),
+                          label: const Text('Retry', style: TextStyle(fontSize: 12)),
+                          onPressed: () {
+                            if (_lastFailedRequest != null) {
+                              _sendMessage(requestOverride: _lastFailedRequest);
+                            }
+                          },
+                        ),
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF6750A4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                          icon: const Icon(Icons.settings_ethernet, size: 16),
+                          label: const Text('Server Settings', style: TextStyle(fontSize: 12)),
+                          onPressed: _openServerConfigDialog,
+                        ),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey.shade800,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                          icon: const Icon(Icons.offline_bolt, size: 16),
+                          label: const Text('Offline Mode', style: TextStyle(fontSize: 12)),
+                          onPressed: () {
+                            if (_lastFailedRequest != null) {
+                              _sendMessage(
+                                requestOverride: _lastFailedRequest,
+                                forceOfflineFallback: true,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -429,6 +593,32 @@ class _TeacherChatTabState extends State<TeacherChatTab> {
                                   fontWeight: isTeacher ? FontWeight.w500 : FontWeight.w600,
                                 ),
                               ),
+                              if (isTeacher && msg.visualCueTrigger != null) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.amber.shade600, width: 1.2),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.palette_outlined, size: 16, color: Colors.brown),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Visual Aid: ${msg.visualCueTrigger}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.brown,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

@@ -5,14 +5,16 @@ import '../models/english_speaking.dart';
 
 /// Service class for Mobile client communicating with English Small-Sentence Speaking Engine API.
 class EnglishSpeakingService {
-  final String baseUrl;
+  final String? _explicitBaseUrl;
   final http.Client client;
 
   EnglishSpeakingService({
     String? baseUrl,
     http.Client? client,
-  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+  })  : _explicitBaseUrl = baseUrl,
         client = client ?? http.Client();
+
+  String get baseUrl => _explicitBaseUrl ?? AppConfig.baseUrl;
 
   /// Fetch list of English speaking prompts optionally filtered by difficulty tier.
   Future<List<SpeakingPrompt>> fetchPrompts({String? tier}) async {

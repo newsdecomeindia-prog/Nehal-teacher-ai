@@ -4,14 +4,16 @@ import '../config/app_config.dart';
 import '../models/knowledge_world.dart';
 
 class KnowledgeWorldMobileService {
-  final String baseUrl;
+  final String? _explicitBaseUrl;
   final http.Client _client;
 
   KnowledgeWorldMobileService({
     String? baseUrl,
     http.Client? client,
-  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+  })  : _explicitBaseUrl = baseUrl,
         _client = client ?? http.Client();
+
+  String get baseUrl => _explicitBaseUrl ?? AppConfig.baseUrl;
 
   /// Fetch all available learning worlds
   Future<List<WorldTheme>> fetchWorlds() async {

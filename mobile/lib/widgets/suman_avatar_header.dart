@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class SumanAvatarHeader extends StatefulWidget {
   final String greetingText;
   final VoidCallback? onAvatarTap;
+  final bool isOnline;
 
   const SumanAvatarHeader({
     super.key,
     this.greetingText = 'नमस्ते नेहल! आज क्या सीखोगे?',
     this.onAvatarTap,
+    this.isOnline = true,
   });
 
   @override
@@ -65,14 +67,15 @@ class _SumanAvatarHeaderState extends State<SumanAvatarHeader>
                   showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                       title: const Row(
                         children: [
-                          Text('👩‍🏫 Suman AI Teacher 3D'),
+                          Text('👩‍🏫 Suman AI Teacher 3D Avatar'),
                         ],
                       ),
                       content: const Text(
-                        'I am Suman AI Teacher! I use interactive 3D visual gestures, real-time voice, and step-by-step explanations to make learning fun for primary students.',
+                        'I am Suman AI Teacher! I use interactive 3D visual gestures, real-time voice synthesis, and step-by-step 5-step pedagogical explanations to make Class 1 learning joyful and intuitive.',
                       ),
                       actions: [
                         TextButton(
@@ -109,11 +112,15 @@ class _SumanAvatarHeaderState extends State<SumanAvatarHeader>
                   ),
                   Container(
                     padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
+                    decoration: BoxDecoration(
+                      color: widget.isOnline ? Colors.green : Colors.orange,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.videocam, color: Colors.white, size: 10),
+                    child: Icon(
+                      widget.isOnline ? Icons.videocam : Icons.wifi_off,
+                      color: Colors.white,
+                      size: 10,
+                    ),
                   ),
                 ],
               ),
@@ -137,18 +144,23 @@ class _SumanAvatarHeaderState extends State<SumanAvatarHeader>
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.amber,
+                        color: widget.isOnline ? Colors.amber : Colors.orangeAccent,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.stars, color: Colors.black, size: 12),
-                          SizedBox(width: 2),
+                          Icon(
+                            widget.isOnline ? Icons.stars : Icons.cloud_off,
+                            color: Colors.black,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 2),
                           Text(
-                            '3D AI',
-                            style: TextStyle(
+                            widget.isOnline ? '3D AI' : 'Offline',
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
@@ -161,7 +173,8 @@ class _SumanAvatarHeaderState extends State<SumanAvatarHeader>
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
