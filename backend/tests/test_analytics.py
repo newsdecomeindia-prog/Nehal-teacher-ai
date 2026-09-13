@@ -21,6 +21,8 @@ def test_generate_exam_post():
     assert "exam_id" in data
     assert data["target_grade"] == 1
     assert data["subject"] == "math"
+    assert data["allow_ai_hints"] is False
+    assert data["is_timed_quiz"] is True
     assert len(data["questions"]) > 0
 
 
@@ -76,6 +78,8 @@ def test_submit_exam_and_evaluation():
     sub_data = sub_res.json()
     assert sub_data["total_score"] > 0
     assert sub_data["percentage"] > 0.0
+    assert sub_data["ai_hints_used"] == 0
+    assert "suresh_analysis" in sub_data
     assert "submission_id" in sub_data
     assert len(sub_data["question_evaluations"]) == 1
 
@@ -90,6 +94,11 @@ def test_parent_dashboard_and_privacy():
     assert data["child_student_id"] == "std-privacy-check"
     assert data["overall_mastery_percentage"] >= 0.0
     assert len(data["subject_mastery"]) > 0
+    assert data["subject_mastery"][0]["accuracy_rate"] >= 0.0
+    assert data["subject_mastery"][0]["time_spent_minutes"] >= 0.0
+    assert len(data["suresh_ai_insights"]) > 0
+    assert "weekly_summary" in data
+    assert data["weekly_summary"]["active_days_count"] >= 1
     assert len(data["learning_gaps"]) > 0
     assert "consent_settings" in data
     assert data["consent_settings"]["dpdp_consent_granted"] is True

@@ -135,6 +135,9 @@ class ExamPaper {
   final int durationMinutes;
   final int totalQuestions;
   final int totalMarks;
+  final bool allowAiHints;
+  final bool isTimedQuiz;
+  final String? chapterId;
   final List<ExamQuestion> questions;
 
   ExamPaper({
@@ -146,6 +149,9 @@ class ExamPaper {
     this.durationMinutes = 15,
     this.totalQuestions = 5,
     this.totalMarks = 50,
+    this.allowAiHints = false,
+    this.isTimedQuiz = true,
+    this.chapterId,
     required this.questions,
   });
 
@@ -165,6 +171,9 @@ class ExamPaper {
       durationMinutes: json['duration_minutes'] as int? ?? 15,
       totalQuestions: json['total_questions'] as int? ?? 5,
       totalMarks: json['total_marks'] as int? ?? 50,
+      allowAiHints: json['allow_ai_hints'] as bool? ?? false,
+      isTimedQuiz: json['is_timed_quiz'] as bool? ?? true,
+      chapterId: json['chapter_id'] as String?,
       questions: (json['questions'] as List)
           .map((e) => ExamQuestion.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -181,6 +190,9 @@ class ExamPaper {
       'duration_minutes': durationMinutes,
       'total_questions': totalQuestions,
       'total_marks': totalMarks,
+      'allow_ai_hints': allowAiHints,
+      'is_timed_quiz': isTimedQuiz,
+      'chapter_id': chapterId,
       'questions': questions.map((e) => e.toJson()).toList(),
     };
   }
@@ -238,10 +250,13 @@ class ExamSubmissionResponse {
   final int totalScore;
   final int maxScore;
   final double percentage;
+  final double timeTakenSeconds;
+  final int aiHintsUsed;
   final List<String> strengthAreas;
   final List<String> weaknessAreas;
   final List<QuestionEvaluation> questionEvaluations;
   final String feedbackMessage;
+  final String? sureshAnalysis;
 
   ExamSubmissionResponse({
     required this.submissionId,
@@ -251,10 +266,13 @@ class ExamSubmissionResponse {
     required this.totalScore,
     required this.maxScore,
     required this.percentage,
+    this.timeTakenSeconds = 0.0,
+    this.aiHintsUsed = 0,
     required this.strengthAreas,
     required this.weaknessAreas,
     required this.questionEvaluations,
     required this.feedbackMessage,
+    this.sureshAnalysis,
   });
 
   factory ExamSubmissionResponse.fromJson(Map<String, dynamic> json) {
@@ -269,12 +287,15 @@ class ExamSubmissionResponse {
       totalScore: json['total_score'] as int,
       maxScore: json['max_score'] as int,
       percentage: (json['percentage'] as num).toDouble(),
+      timeTakenSeconds: (json['time_taken_seconds'] as num?)?.toDouble() ?? 0.0,
+      aiHintsUsed: json['ai_hints_used'] as int? ?? 0,
       strengthAreas: List<String>.from(json['strength_areas'] ?? []),
       weaknessAreas: List<String>.from(json['weakness_areas'] ?? []),
       questionEvaluations: (json['question_evaluations'] as List)
           .map((e) => QuestionEvaluation.fromJson(e as Map<String, dynamic>))
           .toList(),
       feedbackMessage: json['feedback_message'] as String,
+      sureshAnalysis: json['suresh_analysis'] as String?,
     );
   }
 
@@ -287,10 +308,13 @@ class ExamSubmissionResponse {
       'total_score': totalScore,
       'max_score': maxScore,
       'percentage': percentage,
+      'time_taken_seconds': timeTakenSeconds,
+      'ai_hints_used': aiHintsUsed,
       'strength_areas': strengthAreas,
       'weakness_areas': weaknessAreas,
       'question_evaluations': questionEvaluations.map((e) => e.toJson()).toList(),
       'feedback_message': feedbackMessage,
+      'suresh_analysis': sureshAnalysis,
     };
   }
 }
@@ -301,6 +325,9 @@ class SubjectMastery {
   final String masteryLevel;
   final List<String> topicsMastered;
   final List<String> topicsNeedingImprovement;
+  final double timeSpentMinutes;
+  final double accuracyRate;
+  final int totalQuestionsAttempted;
 
   SubjectMastery({
     required this.subject,
@@ -308,6 +335,9 @@ class SubjectMastery {
     required this.masteryLevel,
     required this.topicsMastered,
     required this.topicsNeedingImprovement,
+    this.timeSpentMinutes = 0.0,
+    this.accuracyRate = 0.0,
+    this.totalQuestionsAttempted = 0,
   });
 
   factory SubjectMastery.fromJson(Map<String, dynamic> json) {
@@ -321,6 +351,9 @@ class SubjectMastery {
       topicsMastered: List<String>.from(json['topics_mastered'] ?? []),
       topicsNeedingImprovement:
           List<String>.from(json['topics_needing_improvement'] ?? []),
+      timeSpentMinutes: (json['time_spent_minutes'] as num?)?.toDouble() ?? 0.0,
+      accuracyRate: (json['accuracy_rate'] as num?)?.toDouble() ?? 0.0,
+      totalQuestionsAttempted: json['total_questions_attempted'] as int? ?? 0,
     );
   }
 
@@ -331,6 +364,42 @@ class SubjectMastery {
       'mastery_level': masteryLevel,
       'topics_mastered': topicsMastered,
       'topics_needing_improvement': topicsNeedingImprovement,
+      'time_spent_minutes': timeSpentMinutes,
+      'accuracy_rate': accuracyRate,
+      'total_questions_attempted': totalQuestionsAttempted,
+    };
+  }
+}
+
+class WeeklySummary {
+  final int activeDaysCount;
+  final double totalStudyMinutes;
+  final int quizzesCompleted;
+  final double averageAccuracyPercentage;
+
+  WeeklySummary({
+    this.activeDaysCount = 5,
+    this.totalStudyMinutes = 180.0,
+    this.quizzesCompleted = 4,
+    this.averageAccuracyPercentage = 88.5,
+  });
+
+  factory WeeklySummary.fromJson(Map<String, dynamic> json) {
+    return WeeklySummary(
+      activeDaysCount: json['active_days_count'] as int? ?? 5,
+      totalStudyMinutes: (json['total_study_minutes'] as num?)?.toDouble() ?? 180.0,
+      quizzesCompleted: json['quizzes_completed'] as int? ?? 4,
+      averageAccuracyPercentage:
+          (json['average_accuracy_percentage'] as num?)?.toDouble() ?? 88.5,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'active_days_count': activeDaysCount,
+      'total_study_minutes': totalStudyMinutes,
+      'quizzes_completed': quizzesCompleted,
+      'average_accuracy_percentage': averageAccuracyPercentage,
     };
   }
 }
@@ -439,9 +508,12 @@ class ParentDashboardResponse {
   final double totalLearningHours;
   final int totalExamsTaken;
   final List<SubjectMastery> subjectMastery;
+  final List<String> sureshAiInsights;
+  final WeeklySummary weeklySummary;
   final List<LearningGapIndicator> learningGaps;
   final List<String> strengths;
   final DPDPParentConsent consentSettings;
+  final int dailyScreenTimeLimitMinutes;
 
   ParentDashboardResponse({
     required this.parentId,
@@ -452,9 +524,12 @@ class ParentDashboardResponse {
     this.totalLearningHours = 0.0,
     this.totalExamsTaken = 0,
     required this.subjectMastery,
+    required this.sureshAiInsights,
+    required this.weeklySummary,
     required this.learningGaps,
     required this.strengths,
     required this.consentSettings,
+    this.dailyScreenTimeLimitMinutes = 45,
   });
 
   factory ParentDashboardResponse.fromJson(Map<String, dynamic> json) {
@@ -470,12 +545,18 @@ class ParentDashboardResponse {
       subjectMastery: (json['subject_mastery'] as List)
           .map((e) => SubjectMastery.fromJson(e as Map<String, dynamic>))
           .toList(),
+      sureshAiInsights: List<String>.from(json['suresh_ai_insights'] ?? []),
+      weeklySummary: json['weekly_summary'] != null
+          ? WeeklySummary.fromJson(json['weekly_summary'] as Map<String, dynamic>)
+          : WeeklySummary(),
       learningGaps: (json['learning_gaps'] as List)
           .map((e) => LearningGapIndicator.fromJson(e as Map<String, dynamic>))
           .toList(),
       strengths: List<String>.from(json['strengths'] ?? []),
       consentSettings: DPDPParentConsent.fromJson(
           json['consent_settings'] as Map<String, dynamic>),
+      dailyScreenTimeLimitMinutes:
+          json['daily_screen_time_limit_minutes'] as int? ?? 45,
     );
   }
 
@@ -489,9 +570,12 @@ class ParentDashboardResponse {
       'total_learning_hours': totalLearningHours,
       'total_exams_taken': totalExamsTaken,
       'subject_mastery': subjectMastery.map((e) => e.toJson()).toList(),
+      'suresh_ai_insights': sureshAiInsights,
+      'weekly_summary': weeklySummary.toJson(),
       'learning_gaps': learningGaps.map((e) => e.toJson()).toList(),
       'strengths': strengths,
       'consent_settings': consentSettings.toJson(),
+      'daily_screen_time_limit_minutes': dailyScreenTimeLimitMinutes,
     };
   }
 }
