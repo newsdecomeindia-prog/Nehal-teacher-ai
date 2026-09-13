@@ -1,14 +1,39 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/teacher.dart';
 import '../widgets/rich_visual_card.dart';
 
 class TeacherService {
-  final String baseUrl;
+  final String? _explicitBaseUrl;
+  final http.Client client;
 
-  TeacherService({String? baseUrl})
-      : baseUrl = baseUrl ?? AppConfig.baseUrl;
+  TeacherService({
+    String? baseUrl,
+    http.Client? client,
+  })  : _explicitBaseUrl = baseUrl,
+        client = client ?? http.Client();
+
+  String get baseUrl => _explicitBaseUrl ?? AppConfig.baseUrl;
 
   Future<TeacherPersonaConfig> getTeacherPersona({String language = 'en'}) async {
+    final uri = Uri.parse('$baseUrl/teacher/persona').replace(
+      queryParameters: {'language': language},
+    );
+    try {
+      final response = await client.get(
+        uri,
+        headers: {'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        return TeacherPersonaConfig.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
+      }
+    } catch (_) {
+      // Return default persona config on network timeout
+    }
+
     return TeacherPersonaConfig(
       name: 'Suman AI',
       language: language,
@@ -18,18 +43,35 @@ class TeacherService {
   }
 
   Future<TeacherChatResponse> sendChatMessage(TeacherChatRequest request) async {
-    try {
-      return _generateOfflineFallbackResponse(request);
-    } catch (e) {
-      return _generateOfflineFallbackResponse(request);
+    final uri = Uri.parse('$baseUrl/teacher/chat');
+
+    final response = await client
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode(request.toJson()),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      return TeacherChatResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception(
+          'Backend connection failed with status: ${response.statusCode}');
     }
   }
 
-  TeacherChatResponse _generateOfflineFallbackResponse(TeacherChatRequest request) {
+  TeacherChatResponse generateOfflineFallbackResponse(TeacherChatRequest request) {
     final msgLower = request.message.toLowerCase();
 
     // PM Modi entity match query
-    if (msgLower.contains('modi') || msgLower.contains('प्रधानमंत्री') || msgLower.contains('prime minister')) {
+    if (msgLower.contains('modi') ||
+        msgLower.contains('प्रधानमंत्री') ||
+        msgLower.contains('prime minister')) {
       final richCard = RichVisualCardData(
         entityName: 'Narendra Modi',
         imageUrl: 'https://assets.nehalai.com/images/pm_modi.jpg',
@@ -39,8 +81,10 @@ class TeacherService {
           'marathi': 'नरेंद्र मोदी',
         },
         pronunciationAudio: 'https://assets.nehalai.com/audio/pm_modi_pron.mp3',
-        simpleExplanation: 'नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।',
-        checkingQuestion: 'क्या आप जानते हैं कि भारत की राजधानी (Capital) कौन सी है?',
+        simpleExplanation:
+            'नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।',
+        checkingQuestion:
+            'क्या आप जानते हैं कि भारत की राजधानी (Capital) कौन सी है?',
         classLevel: 1,
       );
 

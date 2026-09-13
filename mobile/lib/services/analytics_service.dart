@@ -6,14 +6,16 @@ import '../config/app_config.dart';
 import '../models/analytics.dart';
 
 class AnalyticsService {
-  final String baseUrl;
+  final String? _explicitBaseUrl;
   final http.Client client;
 
   AnalyticsService({
     String? baseUrl,
     http.Client? client,
-  })  : baseUrl = baseUrl ?? AppConfig.baseUrl,
+  })  : _explicitBaseUrl = baseUrl,
         client = client ?? http.Client();
+
+  String get baseUrl => _explicitBaseUrl ?? AppConfig.baseUrl;
 
   /// Fetches diagnostic or formative exam paper for student
   Future<ExamPaper> generateExam({

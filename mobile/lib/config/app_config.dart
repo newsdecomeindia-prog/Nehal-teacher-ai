@@ -3,11 +3,14 @@ import 'package:flutter/foundation.dart';
 /// Centralized configuration manager for Nehal Ki Teacher AI mobile application.
 /// Provides dynamic base URL resolution to ensure Flutter app reaches FastAPI backend
 /// whether running on Android Emulator (10.0.2.2), physical Android device over Wi-Fi,
-/// or Web/Desktop (localhost).
+/// fallback public HTTPS endpoint, or Web/Desktop (localhost).
 class AppConfig {
   static String? _customBaseUrl;
 
-  /// Retrieves the active API base URL.
+  /// Default public cloud live fallback endpoint if backend is hosted online
+  static const String defaultPublicApiUrl = 'https://api.nehalai.com/api/v1';
+
+  /// Retrieves the active API base URL dynamically.
   /// Precedence:
   /// 1. Custom runtime override set via App Settings dialog.
   /// 2. Compile-time environment variable specified via --dart-define=BACKEND_URL=...
@@ -34,6 +37,10 @@ class AppConfig {
   /// Override the API base URL dynamically at runtime (e.g. from AppBar host config dialog).
   static void setCustomBaseUrl(String url) {
     var trimmed = url.trim();
+    if (trimmed.isEmpty) {
+      _customBaseUrl = null;
+      return;
+    }
     if (trimmed.endsWith('/')) {
       trimmed = trimmed.substring(0, trimmed.length - 1);
     }
