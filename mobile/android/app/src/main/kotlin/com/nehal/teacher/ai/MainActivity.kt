@@ -1,4 +1,4 @@
-package com.example.nehal_teacher_ai_mobile
+package com.nehal.teacher.ai
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,4 +1,5 @@
 /// Multi-modal models for Voice (STT/TTS) and Image/Homework Scan integration.
+library;
 
 enum AudioFormat {
   wav,
