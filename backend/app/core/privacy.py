@@ -25,9 +25,7 @@ def sanitize_pii(data: str) -> str:
     return sanitized
 
 
-def sanitize_dict_pii(
-    payload: Dict[str, Any], sensitive_keys: List[str] = None
-) -> Dict[str, Any]:
+def sanitize_dict_pii(payload: Dict[str, Any], sensitive_keys: List[str] = None) -> Dict[str, Any]:
     """
     Recursively scans and sanitizes sensitive fields in a dictionary or payload.
     """
@@ -54,9 +52,7 @@ def sanitize_dict_pii(
     return cleaned
 
 
-def verify_dpdp_coppa_compliance(
-    parent_consent_given: bool, child_age: int
-) -> Dict[str, Any]:
+def verify_dpdp_coppa_compliance(parent_consent_given: bool, child_age: int) -> Dict[str, Any]:
     """
     Verifies compliance with DPDP and COPPA.
     Child data processing under 18 (DPDP) or under 13 (COPPA) requires parent consent.

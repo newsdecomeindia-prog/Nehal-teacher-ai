@@ -22,17 +22,13 @@ class Settings(BaseSettings):
             "http://localhost:8080",
         ]
     )
-    RATE_LIMIT_PER_MINUTE: int = Field(
-        default=60, description="Rate limit requests per minute"
-    )
+    RATE_LIMIT_PER_MINUTE: int = Field(default=60, description="Rate limit requests per minute")
     DPDP_COPPA_STRICT_MODE: bool = Field(
         default=True, description="Enforce strict child data privacy laws"
     )
     DEBUG: bool = Field(default=False)
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @field_validator("SECRET_KEY")
     @classmethod

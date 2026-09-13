@@ -49,9 +49,7 @@ class STTAudioPayload(BaseModel):
     student_id: str = Field(..., description="Unique student/user identifier")
     audio_base64: Optional[str] = Field(None, description="Base64 encoded audio binary data")
     audio_url: Optional[str] = Field(None, description="URL pointing to audio file")
-    audio_format: AudioFormat = Field(
-        default=AudioFormat.WAV, description="Audio container format"
-    )
+    audio_format: AudioFormat = Field(default=AudioFormat.WAV, description="Audio container format")
     sample_rate: int = Field(default=16000, description="Sampling rate in Hz")
     language_hint: str = Field(default="en", description="Language hint ('en', 'hi', 'mr')")
     child_voice_params: Optional[ChildVoiceParameters] = Field(
@@ -61,21 +59,11 @@ class STTAudioPayload(BaseModel):
 
 
 class STTResponse(BaseModel):
-    transcribed_text: str = Field(
-        ..., description="Speech-to-Text transcribed output text"
-    )
-    detected_language: str = Field(
-        ..., description="Detected spoken language ('en', 'hi', 'mr')"
-    )
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="Transcription confidence score"
-    )
-    duration_seconds: float = Field(
-        ..., ge=0.0, description="Audio clip duration in seconds"
-    )
-    pii_stripped: bool = Field(
-        default=True, description="Indicates if PII/metadata was stripped"
-    )
+    transcribed_text: str = Field(..., description="Speech-to-Text transcribed output text")
+    detected_language: str = Field(..., description="Detected spoken language ('en', 'hi', 'mr')")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Transcription confidence score")
+    duration_seconds: float = Field(..., ge=0.0, description="Audio clip duration in seconds")
+    pii_stripped: bool = Field(default=True, description="Indicates if PII/metadata was stripped")
     offline_fallback: bool = Field(
         default=False,
         description="True if transcription used local offline model fallback",
@@ -167,12 +155,8 @@ class ImageScanRequest(BaseModel):
     student_id: str = Field(..., description="Unique student/user identifier")
     image_base64: Optional[str] = Field(None, description="Base64 encoded image content")
     image_url: Optional[str] = Field(None, description="URL to worksheet image")
-    mime_type: ImageMimeType = Field(
-        default=ImageMimeType.JPEG, description="Image MIME type"
-    )
-    resolution: Optional[ImageResolution] = Field(
-        None, description="Image resolution dimensions"
-    )
+    mime_type: ImageMimeType = Field(default=ImageMimeType.JPEG, description="Image MIME type")
+    resolution: Optional[ImageResolution] = Field(None, description="Image resolution dimensions")
     subject_hint: Optional[str] = Field(
         None, description="Optional subject context ('math', 'english', 'hindi', etc.)"
     )
@@ -186,9 +170,7 @@ class ImageScanResponse(BaseModel):
     safety_status: ChildSafetyScanStatus = Field(
         ..., description="Child safety scan assessment result"
     )
-    detected_text: str = Field(
-        ..., description="Full combined OCR text extracted from worksheet"
-    )
+    detected_text: str = Field(..., description="Full combined OCR text extracted from worksheet")
     text_regions: List[OCRTextRegion] = Field(
         default_factory=list,
         description="Structured text blocks with bounding box positions",

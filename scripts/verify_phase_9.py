@@ -3,6 +3,7 @@ Phase 9 Final Backend Integration & Full UI Activation Verification Script.
 Validates Flutter mobile UI code integrity, tests live backend contracts across all 4 UI tabs,
 executes master verification, and checks Flutter analyze/tests.
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -77,8 +78,7 @@ def verify_live_backend_contracts() -> bool:
 
     # Tab 4: Parent Portal Dashboard & Consent
     dash_url = (
-        "/api/v1/analytics/parent-dashboard"
-        "?student_id=student_class1_001&parent_id=parent-01"
+        "/api/v1/analytics/parent-dashboard?student_id=student_class1_001&parent_id=parent-01"
     )
     dash_res = client.get(dash_url)
     if dash_res.status_code != 200 or "overall_mastery_percentage" not in dash_res.json():
@@ -144,8 +144,6 @@ def verify_ruff_lint() -> bool:
     except subprocess.CalledProcessError as e:
         print(f"FAIL: ruff lint check failed:\n{e.stderr}\n{e.stdout}")
         return False
-
-
 
 
 def main():

@@ -56,7 +56,6 @@ SAMPLE_PROMPTS: List[SpeakingPrompt] = [
         ],
         theme="courtesy",
     ),
-
     # Tier Level 2: 4-5 word simple sentences
     SpeakingPrompt(
         prompt_id="prompt-l2-001",
@@ -100,7 +99,6 @@ SAMPLE_PROMPTS: List[SpeakingPrompt] = [
         ],
         theme="nature",
     ),
-
     # Tier Level 3: interactive conversational responses
     SpeakingPrompt(
         prompt_id="prompt-l3-001",

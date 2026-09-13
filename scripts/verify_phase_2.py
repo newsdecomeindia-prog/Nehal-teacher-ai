@@ -3,6 +3,7 @@ Phase 2 Verification Script for Nehal Ki Teacher AI.
 Validates Class 1 curriculum endpoints, schema validity, representation of all 5 subjects
 (English, Hindi, Marathi, Mathematics, EVS/GK), and runs pytest unit tests.
 """
+
 import subprocess
 import sys
 from pathlib import Path

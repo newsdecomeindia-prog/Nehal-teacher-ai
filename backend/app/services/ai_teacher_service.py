@@ -51,6 +51,14 @@ UNSAFE_KEYWORDS = [
     "sexy",
     "drug",
     "gambling",
+    "gun",
+    "knife",
+    "murder",
+    "suicide",
+    "beer",
+    "alcohol",
+    "tobacco",
+    "cigarette",
 ]
 
 # Sample Multi-Modal Rich Visual Cards Store
@@ -65,8 +73,7 @@ RICH_VISUAL_CARDS_DB = {
         ),
         pronunciation_audio="https://assets.nehalai.com/audio/pm_modi_pron.mp3",
         simple_explanation=(
-            "नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे "
-            "देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।"
+            "नरेंद्र मोदी भारत के वर्तमान प्रधानमंत्री हैं। वे देश के विकास और बच्चों की शिक्षा के लिए काम करते हैं।"
         ),
         checking_question="क्या आप जानते हैं कि भारत की राजधानी (Capital) कौन सी है?",
         class_level=1,
@@ -93,9 +100,7 @@ RICH_VISUAL_CARDS_DB = {
             marathi="मोर",
         ),
         pronunciation_audio="https://assets.nehalai.com/audio/peacock_pron.mp3",
-        simple_explanation=(
-            "मोर भारत का राष्ट्रीय पक्षी है। इसके पंख बहुत सुंदर और रंग-बिरंगे होते हैं।"
-        ),
+        simple_explanation=("मोर भारत का राष्ट्रीय पक्षी है। इसके पंख बहुत सुंदर और रंग-बिरंगे होते हैं।"),
         checking_question="क्या आपने बारिश में मोर को नाचते देखा है?",
         class_level=1,
     ),

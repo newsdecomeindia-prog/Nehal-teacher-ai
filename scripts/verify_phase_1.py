@@ -3,6 +3,7 @@ Phase 1 Verification Script for Nehal Ki Teacher AI.
 Verifies directory layout, configuration templates, absence of secrets/Phase 2+ features,
 and backend unit test passes.
 """
+
 import subprocess
 import sys
 from pathlib import Path

@@ -6,6 +6,7 @@ mobile models & service, absence of forbidden Phase 8+ features
 (live payment gateway, production App Store deployment, unsafe data storage),
 pytest suite, ruff linting, and documentation.
 """
+
 import subprocess
 import sys
 from pathlib import Path

@@ -20,9 +20,9 @@ class ErrorCategory(str, Enum):
 
 class ChildFeedbackTag(str, Enum):
     STAR_PERFORMER = "star_performer"  # Excellent attempt (90-100%)
-    GREAT_EFFORT = "great_effort"      # Good attempt with minor soft errors (70-89%)
-    KEEP_TRYING = "keep_trying"        # Needs practice (<70%), gentle encouraging feedback
-    SUPER_CLEAR = "super_clear"        # Excellent pronunciation tag
+    GREAT_EFFORT = "great_effort"  # Good attempt with minor soft errors (70-89%)
+    KEEP_TRYING = "keep_trying"  # Needs practice (<70%), gentle encouraging feedback
+    SUPER_CLEAR = "super_clear"  # Excellent pronunciation tag
     TRY_AGAIN_GENTLY = "try_again_gently"
 
 
@@ -52,9 +52,7 @@ class SpeakingPrompt(BaseModel):
 class StudentAudioAttempt(BaseModel):
     student_id: str = Field(..., description="Unique student identifier")
     prompt_id: str = Field(..., description="Prompt ID being attempted")
-    audio_base64: Optional[str] = Field(
-        None, description="Base64 encoded student audio recording"
-    )
+    audio_base64: Optional[str] = Field(None, description="Base64 encoded student audio recording")
     spoken_transcript: Optional[str] = Field(
         None, description="Transcribed text if STT already processed"
     )
@@ -71,9 +69,7 @@ class WordEvaluationDetail(BaseModel):
     error_category: ErrorCategory = Field(
         default=ErrorCategory.NONE, description="Type of soft error detected"
     )
-    child_tip: Optional[str] = Field(
-        None, description="Child-friendly gentle pronunciation tip"
-    )
+    child_tip: Optional[str] = Field(None, description="Child-friendly gentle pronunciation tip")
 
 
 class AccuracyScore(BaseModel):
@@ -102,9 +98,7 @@ class GentleFeedback(BaseModel):
     )
     feedback_tag: ChildFeedbackTag = Field(..., description="Categorized feedback tag")
     stars_earned: int = Field(..., ge=1, le=3, description="Stars awarded (1-3 stars)")
-    improvements: List[str] = Field(
-        default_factory=list, description="Gentle tips for improvement"
-    )
+    improvements: List[str] = Field(default_factory=list, description="Gentle tips for improvement")
     praise_points: List[str] = Field(
         default_factory=list, description="Specific things the student did well"
     )

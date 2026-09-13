@@ -2,6 +2,7 @@
 Phase 0 Verification Script for Nehal Ki Teacher AI.
 Validates baseline setup, 35 master requirements, and design validation labels.
 """
+
 import sys
 from pathlib import Path
 
