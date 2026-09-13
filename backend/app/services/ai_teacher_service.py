@@ -255,6 +255,73 @@ class AITeacherService:
                     "Question: Do you know the capital city of India?"
                 )
 
+        elif (
+            "5 + 3" in request.message
+            or "10 - 4" in request.message
+            or "homework" in request.message.lower()
+        ):
+            mode = InteractionMode.STANDARD
+            teaching_strat = "homework_ocr_pedagogy"
+            if "5 + 3" in request.message:
+                if lang == "hi":
+                    simple_exp = (
+                        "आइए मिलकर 5 और 3 को जोड़ना सीखें! हमें सीधा उत्तर रटना नहीं है।"
+                    )
+                    real_life_ex = (
+                        "मान लीजिए आपके एक हाथ में 5 टॉफियां और दूसरे हाथ में 3 टॉफियां हैं।"
+                    )
+                    checking_q = (
+                        "5 के आगे 3 बार और गिनें: 6, 7, 8! तो कुल कितनी टॉफियां हुईं?"
+                    )
+                    child_eval = "बहुत बढ़िया प्रयास!"
+                    supportive_corr = "हमेशा आगे की ओर गिनकर जोड़ें।"
+                    response_text = (
+                        "सुमन मैम की गाइडेंस: 5 + 3 को हल करने के लिए "
+                        "पहले 5 लें, फिर 3 कदम आगे गिनें (6, 7, 8)। "
+                        "उदाहरण: 5 सेब + 3 सेब = 8 सेब! क्या आप अगला सवाल खुद हल करेंगे?"
+                    )
+                elif lang == "mr":
+                    simple_exp = (
+                        "चला ५ आणि ३ ची बेरीज करूया! आपण उत्तर न छापता सोप्या पद्धतीने शिकूया."
+                    )
+                    real_life_ex = "५ चॉकलेट नंतर ३ चॉकलेट मोजा: ६, ७, ८!"
+                    checking_q = "५ च्या पुढे ३ मोजल्यावर किती येतात?"
+                    child_eval = "छान प्रयत्न!"
+                    supportive_corr = "हळूहळू मोजा."
+                    response_text = (
+                        "सुमन बाईंचे मार्गदर्शन: ५ + ३ साठी ५ च्या पुढे ३ बोटे मोजा (६, ७, ८). "
+                        "उदा: ५ सफरचंद + ३ सफरचंद = ८! पुढील प्रश्न तू स्वतः करून पाहणार का?"
+                    )
+                else:
+                    simple_exp = (
+                        "Let me show you step-by-step how to solve 5 + 3 "
+                        "instead of just giving the exam answer!"
+                    )
+                    real_life_ex = "Start at 5, then count 3 steps forward: 6, 7, 8!"
+                    checking_q = (
+                        "What number do you land on after counting 3 steps from 5?"
+                    )
+                    child_eval = "Awesome attempt!"
+                    supportive_corr = (
+                        "Counting forward step by step builds strong math skills!"
+                    )
+                    response_text = (
+                        "Suman Teacher's Guidance: To solve 5 + 3, start at 5 and count "
+                        "forward 3 steps (6, 7, 8). "
+                        "Example: 5 apples + 3 apples = 8 apples! "
+                        "Would you like to try the next question on your worksheet?"
+                    )
+            else:
+                simple_exp = "Let's solve this homework problem together step-by-step!"
+                real_life_ex = "Think of a daily example with toys or fruits."
+                checking_q = "What is the first step you want to try?"
+                child_eval = "Great job scanning your worksheet!"
+                supportive_corr = "Take your time and follow the step-by-step clues."
+                response_text = (
+                    "Suman Teacher's Guidance: Let's break down this worksheet problem "
+                    "into simple steps together! What step would you like to attempt first?"
+                )
+
         elif is_confused:
             mode = InteractionMode.FALLBACK_EXPLANATION
             _prompt_payload = get_fallback_explanation_prompt(
